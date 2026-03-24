@@ -1975,9 +1975,9 @@ document.getElementById('mission-report').addEventListener('click', e => {
     const corePulse = 0.85 + 0.15 * Math.sin(t * 1.2);
     const coreR = maxR * 0.06 * corePulse;
     const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR * 3);
-    coreGrad.addColorStop(0, `rgba(120,180,255,${0.08 * corePulse})`);
-    coreGrad.addColorStop(0.3, `rgba(80,120,220,${0.04 * corePulse})`);
-    coreGrad.addColorStop(0.7, `rgba(40,60,160,${0.015 * corePulse})`);
+    coreGrad.addColorStop(0, `rgba(220,220,220,${0.08 * corePulse})`);
+    coreGrad.addColorStop(0.3, `rgba(160,160,160,${0.04 * corePulse})`);
+    coreGrad.addColorStop(0.7, `rgba(80,80,80,${0.015 * corePulse})`);
     coreGrad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = coreGrad;
     ctx.beginPath();
@@ -1997,7 +1997,7 @@ document.getElementById('mission-report').addEventListener('click', e => {
       const a = wv.alpha * fade;
       if (a < 0.003) return;
 
-      ctx.strokeStyle = `hsla(${wv.hue},55%,55%,${a})`;
+      ctx.strokeStyle = `rgba(200,200,200,${a})`;
       ctx.lineWidth = wv.width * fade;
       ctx.beginPath();
 
@@ -2017,8 +2017,8 @@ document.getElementById('mission-report').addEventListener('click', e => {
       if (a > 0.02 && wv.width > 1.5) {
         const glowGrad = ctx.createRadialGradient(cx, cy, Math.max(0, r - 15), cx, cy, r + 15);
         glowGrad.addColorStop(0, 'rgba(0,0,0,0)');
-        glowGrad.addColorStop(0.4, `hsla(${wv.hue},50%,50%,${a * 0.25})`);
-        glowGrad.addColorStop(0.6, `hsla(${wv.hue},50%,50%,${a * 0.25})`);
+        glowGrad.addColorStop(0.4, `rgba(180,180,180,${a * 0.25})`);
+        glowGrad.addColorStop(0.6, `rgba(180,180,180,${a * 0.25})`);
         glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = glowGrad;
         ctx.beginPath();
@@ -2036,7 +2036,7 @@ document.getElementById('mission-report').addEventListener('click', e => {
       const fade = wv.radius < 0.1 ? wv.radius / 0.1 : wv.radius > 0.85 ? (1.1 - wv.radius) / 0.25 : 1;
       const x = cx + Math.cos(m.angle) * r;
       const y = cy + Math.sin(m.angle) * r;
-      ctx.fillStyle = `hsla(${m.hue},65%,72%,${m.alpha * fade})`;
+      ctx.fillStyle = `rgba(210,210,210,${m.alpha * fade})`;
       ctx.beginPath();
       ctx.arc(x, y, m.size, 0, Math.PI * 2);
       ctx.fill();
