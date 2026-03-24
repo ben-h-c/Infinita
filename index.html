@@ -90,6 +90,46 @@
   .search-section-label{font-size:9px;letter-spacing:2px;color:rgba(0,238,255,0.22);text-transform:uppercase;padding:6px 0 3px;border-top:1px solid rgba(0,238,255,0.07);margin-top:4px;display:flex;align-items:center;gap:6px}
   .search-spinner{width:8px;height:8px;border:1px solid rgba(0,238,255,0.2);border-top-color:#0ef;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
   @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── Travel Panel ── */
+  .travel-panel{position:fixed;inset:0;z-index:151;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(0,4,12,0.85)}
+  .travel-panel.open{opacity:1;pointer-events:all}
+  .travel-card{background:rgba(0,10,22,0.98);border:1px solid rgba(0,238,255,0.22);border-radius:6px;padding:26px 30px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto}
+  .travel-card-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;letter-spacing:5px;color:#0ef;margin-bottom:22px;text-align:center}
+  .travel-section{margin-bottom:18px}
+  .travel-section-label{font-size:9px;text-transform:uppercase;letter-spacing:3px;color:rgba(0,238,255,0.65);margin-bottom:8px}
+  .travel-dest-input{width:100%;background:rgba(0,238,255,0.04);border:1px solid rgba(0,238,255,0.2);color:#0ef;font-family:'Share Tech Mono',monospace;font-size:13px;padding:7px 10px;outline:none;border-radius:2px;box-sizing:border-box}
+  .travel-dest-input:focus{border-color:rgba(0,238,255,0.5)}
+  .travel-dest-results{max-height:150px;overflow-y:auto;margin-top:4px}
+  .travel-dest-result{padding:5px 8px;cursor:pointer;border-left:2px solid transparent;transition:all 0.12s}
+  .travel-dest-result:hover{background:rgba(0,238,255,0.07);border-left-color:#0ef}
+  .travel-dest-result .res-name{font-size:12px;color:#0ef;font-weight:700}
+  .travel-dest-result .res-info{font-size:10px;color:rgba(0,238,255,0.55);margin-top:1px}
+  .travel-dest-confirmed{background:rgba(0,238,255,0.05);border:1px solid rgba(0,238,255,0.22);border-radius:2px;padding:8px 12px;margin-top:6px;display:none}
+  .travel-dest-confirmed.show{display:block}
+  .travel-dest-confirmed-name{font-family:'Orbitron',sans-serif;font-size:13px;color:#0ef;font-weight:700}
+  .travel-dest-confirmed-info{font-size:10px;color:rgba(0,238,255,0.65);margin-top:3px}
+  .travel-speeds-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .travel-speed-btn{background:rgba(0,238,255,0.04);border:1px solid rgba(0,238,255,0.15);border-radius:3px;padding:9px 12px;cursor:pointer;transition:all 0.14s;text-align:left}
+  .travel-speed-btn:hover{background:rgba(0,238,255,0.09);border-color:rgba(0,238,255,0.35)}
+  .travel-speed-btn.selected{background:rgba(0,238,255,0.13);border-color:#0ef;box-shadow:0 0 10px rgba(0,238,255,0.18)}
+  .travel-speed-name{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:#0ef}
+  .travel-speed-sub{font-size:9px;color:rgba(0,238,255,0.6);margin-top:2px}
+  .travel-engage-row{display:flex;gap:10px;margin-top:20px}
+  .travel-engage-btn{flex:1;background:rgba(0,238,255,0.1);border:1px solid rgba(0,238,255,0.45);color:#0ef;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:4px;padding:13px;cursor:pointer;border-radius:3px;transition:all 0.2s}
+  .travel-engage-btn:hover:not(:disabled){background:rgba(0,238,255,0.22);box-shadow:0 0 24px rgba(0,238,255,0.3)}
+  .travel-engage-btn:disabled{opacity:0.28;cursor:not-allowed}
+  .travel-panel-footer{font-size:9px;color:rgba(0,238,255,0.22);text-align:center;margin-top:14px;letter-spacing:2px}
+  /* ── Travel HUD (in-flight) ── */
+  .travel-hud{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:20;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.4s;background:rgba(0,10,20,0.55);border:1px solid rgba(0,238,255,0.14);border-radius:4px;padding:10px 18px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .travel-hud.active{opacity:1}
+  .travel-hud-dest{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;color:#0ef;margin-bottom:6px}
+  .travel-hud-stats{font-size:10px;color:rgba(0,238,255,0.85);display:flex;gap:18px;justify-content:center}
+  .travel-hud-stat span{color:#fff;font-weight:700}
+  .travel-abort-btn{pointer-events:all;margin-top:8px;background:rgba(255,50,50,0.1);border:1px solid rgba(255,50,50,0.4);color:#ff6060;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;padding:4px 16px;cursor:pointer;border-radius:2px;transition:all 0.15s}
+  .travel-abort-btn:hover{background:rgba(255,50,50,0.25)}
+  /* ── Warp Overlay ── */
+  #warp-overlay{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity 0.4s;background:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(80,140,255,0.06) 0%,transparent 50%,rgba(0,0,25,0.75) 100%)}
 </style>
 </head>
 <body>
@@ -187,13 +227,15 @@
           <div class="ctrl-row"><span class="ctrl-key">Tab</span><span class="ctrl-desc">Cycle scale level</span></div>
           <div class="ctrl-row"><span class="ctrl-key">H</span><span class="ctrl-desc">Toggle HUD</span></div>
           <div class="ctrl-row"><span class="ctrl-key">C</span><span class="ctrl-desc">Show / hide controls</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">T</span><span class="ctrl-desc">Navigation Computer</span></div>
         </div>
 
         <div>
-          <div class="ctrl-section-title">Database &amp; Search</div>
-          <div class="ctrl-row"><span class="ctrl-key">F</span><span class="ctrl-desc">Open object search</span></div>
+          <div class="ctrl-section-title">Database &amp; Travel</div>
+          <div class="ctrl-row"><span class="ctrl-key">F</span><span class="ctrl-desc">Quick object search</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">T</span><span class="ctrl-desc">Navigation Computer</span></div>
           <div class="ctrl-row"><span class="ctrl-key">Enter</span><span class="ctrl-desc">Travel to result</span></div>
-          <div class="ctrl-row"><span class="ctrl-key">Esc</span><span class="ctrl-desc">Close search / controls</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Esc</span><span class="ctrl-desc">Close / abort travel</span></div>
         </div>
 
       </div>
@@ -211,6 +253,44 @@
     </div>
   </div>
 </div>
+
+<!-- Travel Panel -->
+<div class="travel-panel" id="travel-panel">
+  <div class="travel-card">
+    <div class="travel-card-title">NAVIGATION COMPUTER</div>
+    <div class="travel-section">
+      <div class="travel-section-label">Destination</div>
+      <input class="travel-dest-input" id="travel-dest-input" placeholder="Search star, planet, galaxy…" autocomplete="off" spellcheck="false">
+      <div class="travel-dest-results" id="travel-dest-results"></div>
+      <div class="travel-dest-confirmed" id="travel-dest-confirmed">
+        <div class="travel-dest-confirmed-name" id="travel-dest-name">—</div>
+        <div class="travel-dest-confirmed-info" id="travel-dest-info"></div>
+      </div>
+    </div>
+    <div class="travel-section">
+      <div class="travel-section-label">Travel Speed</div>
+      <div class="travel-speeds-grid" id="travel-speeds-grid"></div>
+    </div>
+    <div class="travel-engage-row">
+      <button class="travel-engage-btn" id="travel-engage-btn" disabled>ENGAGE</button>
+    </div>
+    <div class="travel-panel-footer">T / ESC to close &nbsp;·&nbsp; ESC to abort during flight</div>
+  </div>
+</div>
+
+<!-- Travel flight HUD -->
+<div class="travel-hud" id="travel-hud">
+  <div class="travel-hud-dest" id="travel-hud-dest">—</div>
+  <div class="travel-hud-stats">
+    <div class="travel-hud-stat">SPD <span id="t-spd">0</span></div>
+    <div class="travel-hud-stat">DIST <span id="t-dist">—</span></div>
+    <div class="travel-hud-stat">ETA <span id="t-eta">—</span></div>
+  </div>
+  <button class="travel-abort-btn" id="travel-abort-btn">ABORT</button>
+</div>
+
+<!-- Warp effect overlay -->
+<div id="warp-overlay"></div>
 
 <div id="labels"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -798,7 +878,7 @@ function formatDistFromAU(au) {
   return (ly / 1e6).toFixed(2) + ' Mly';
 }
 
-function travelToSIMBADResult(result) {
+function travelToSIMBADResult(result, skipTravel = false) {
   const { name, ra, dec, plx, z, otype, sp } = result;
   const typeInfo = simbadOtypeInfo(otype);
   const distAU   = simbadDistAU(plx, z, typeInfo);
@@ -814,7 +894,7 @@ function travelToSIMBADResult(result) {
   scene.add(mesh);
   liveStarMeshes.push(mesh);
   labelsList.push({ el: createLabel(name), mesh, scaleLevel: typeInfo.scale });
-  travelToMesh(mesh, typeInfo.scale);
+  if (!skipTravel) travelToMesh(mesh, typeInfo.scale);
   closeSearch();
 }
 
@@ -947,6 +1027,259 @@ document.getElementById('search-input').addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════
+//  TRAVEL SYSTEM
+// ═══════════════════════════════════════════════
+const TRAVEL_SPEEDS = [
+  { label: 'ISS Orbit',      sub: '7.7 km/s',            au_s: 7700 / 149597870.7 },
+  { label: 'Voyager 1',      sub: '17 km/s',              au_s: 17000 / 149597870.7 },
+  { label: 'Solar Probe',    sub: '163 km/s',             au_s: 163000 / 149597870.7 },
+  { label: '1% Light',       sub: '0.01c · 3,000 km/s',  au_s: C_AU_S * 0.01 },
+  { label: 'Light Speed',    sub: '1c · 299,792 km/s',   au_s: C_AU_S },
+  { label: '10× Light',      sub: '10c · sci-fi drive',  au_s: C_AU_S * 10 },
+  { label: '100× Light',     sub: '100c · hyperdrive',   au_s: C_AU_S * 100 },
+  { label: '1,000× Light',   sub: '1,000c · warp',       au_s: C_AU_S * 1000 },
+];
+
+let travelPanelOpen = false;
+let travelActive    = false;
+let travelDest      = null;  // { position, name, distLY, scaleLevel, simbadResult? }
+let travelSpeedIdx  = 4;     // default: light speed
+let travelSpeed     = 0;     // current AU/s
+let travelDestDebounce = null;
+
+// Build speed grid
+(function() {
+  const grid = document.getElementById('travel-speeds-grid');
+  TRAVEL_SPEEDS.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'travel-speed-btn' + (i === travelSpeedIdx ? ' selected' : '');
+    btn.innerHTML = `<div class="travel-speed-name">${s.label}</div><div class="travel-speed-sub">${s.sub}</div>`;
+    btn.addEventListener('click', () => {
+      travelSpeedIdx = i;
+      grid.querySelectorAll('.travel-speed-btn').forEach((b, j) => b.classList.toggle('selected', j === i));
+    });
+    grid.appendChild(btn);
+  });
+})();
+
+function openTravelPanel() {
+  travelPanelOpen = true;
+  document.getElementById('travel-panel').classList.add('open');
+  setTimeout(() => document.getElementById('travel-dest-input').focus(), 40);
+}
+function closeTravelPanel() {
+  travelPanelOpen = false;
+  document.getElementById('travel-panel').classList.remove('open');
+}
+function setTravelDest(dest) {
+  travelDest = dest;
+  document.getElementById('travel-dest-name').textContent = dest.name;
+  const au = dest.position.length();
+  const camDist = camera.position.distanceTo(dest.position);
+  const distStr = formatDist(camDist);
+  document.getElementById('travel-dest-info').textContent = distStr + ' from current position';
+  document.getElementById('travel-dest-confirmed').classList.add('show');
+  document.getElementById('travel-dest-results').innerHTML = '';
+  document.getElementById('travel-dest-input').value = '';
+  document.getElementById('travel-engage-btn').disabled = false;
+}
+
+// Travel destination search (reuses SIMBAD search)
+const travelInput   = document.getElementById('travel-dest-input');
+const travelResults = document.getElementById('travel-dest-results');
+
+function renderTravelResult(name, typeLabel, distLY, onClick) {
+  const div = document.createElement('div');
+  div.className = 'travel-dest-result';
+  const d = distLY > 0 ? (distLY < 1000 ? distLY.toFixed(2) + ' ly' : (distLY/1000).toFixed(1) + ' kly') : 'Solar System';
+  div.innerHTML = `<div class="res-name">${name}</div><div class="res-info">${typeLabel} · ${d}</div>`;
+  div.addEventListener('click', onClick);
+  travelResults.appendChild(div);
+}
+
+async function doTravelSearch(query) {
+  const q = query.toLowerCase().trim();
+  travelResults.innerHTML = '';
+  if (!q) return;
+  getLocalMatches(q).forEach(obj => {
+    renderTravelResult(obj.name, obj.typeLabel, obj.distLY, () => {
+      setTravelDest({ position: obj.mesh.position.clone(), name: obj.name, distLY: obj.distLY, scaleLevel: obj.scaleLevel });
+    });
+  });
+  if (q.length < 2) return;
+  clearTimeout(travelDestDebounce);
+  const myId = ++liveReqId;
+  travelDestDebounce = setTimeout(async () => {
+    try {
+      const { reqId, json } = await queryLiveSIMBAD(query.trim(), myId);
+      if (reqId !== liveReqId) return;
+      const cols = (json?.metadata || []).map(m => m.name);
+      const idx  = n => cols.indexOf(n);
+      const localNames = new Set(getLocalMatches(q).map(o => o.name.toLowerCase()));
+      (json?.data || []).map(row => ({
+        name: row[idx('main_id')], ra: row[idx('ra')], dec: row[idx('dec')],
+        otype: row[idx('otype')], plx: row[idx('plx_value')], z: row[idx('rvz_redshift')], sp: row[idx('sp_type')]
+      })).filter(r => r.name && r.ra != null && !localNames.has(r.name.toLowerCase()))
+        .forEach(r => {
+          const ti   = simbadOtypeInfo(r.otype);
+          const dAU  = simbadDistAU(r.plx, r.z, ti);
+          const dLY  = dAU / 63241;
+          renderTravelResult(r.name, ti.label, dLY, () => {
+            const pos = raDecToVec3(r.ra, r.dec, dAU);
+            setTravelDest({ position: pos, name: r.name, distLY: dLY, scaleLevel: ti.scale, simbadResult: r });
+          });
+        });
+    } catch(e) {}
+  }, 420);
+}
+travelInput.addEventListener('input',   e => doTravelSearch(e.target.value));
+travelInput.addEventListener('keydown', e => e.stopPropagation());
+
+document.getElementById('travel-engage-btn').addEventListener('click', () => {
+  if (!travelDest) return;
+  closeTravelPanel();
+  travelActive = true;
+  travelSpeed  = 0;
+  document.getElementById('travel-hud').classList.add('active');
+  document.getElementById('travel-hud-dest').textContent = '→ ' + travelDest.name.toUpperCase();
+});
+document.getElementById('travel-abort-btn').addEventListener('click', abortTravel);
+
+function abortTravel() {
+  travelActive = false;
+  travelSpeed  = 0;
+  document.getElementById('travel-hud').classList.remove('active');
+  document.getElementById('warp-overlay').style.opacity = 0;
+  warpMesh.visible = false;
+}
+
+// ── Warp streak geometry ──────────────────────
+const WARP_N = 700;
+const _wZ = new Float32Array(WARP_N); // normalised depth (0 = camera, -1 = 1×far ahead)
+const _wR = new Float32Array(WARP_N); // normalised radius
+const _wA = new Float32Array(WARP_N); // angle around axis
+for (let i = 0; i < WARP_N; i++) {
+  _wZ[i] = -(0.05 + Math.random() * 0.8);
+  _wR[i] =   0.005 + Math.random() * 0.11;
+  _wA[i] =   Math.random() * Math.PI * 2;
+}
+const warpBuf = new Float32Array(WARP_N * 6);
+const warpGeo = new THREE.BufferGeometry();
+warpGeo.setAttribute('position', new THREE.BufferAttribute(warpBuf, 3));
+const warpMat = new THREE.LineBasicMaterial({ color: 0xaaddff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+const warpMesh = new THREE.LineSegments(warpGeo, warpMat);
+scene.add(warpMesh);
+
+const _tD = new THREE.Vector3();
+const _tR = new THREE.Vector3();
+const _tU = new THREE.Vector3();
+
+function updateTravel(dt) {
+  // Fade out warp when not travelling
+  if (!travelActive) {
+    if (travelSpeed > 0) {
+      travelSpeed = Math.max(0, travelSpeed * (1 - dt * 4));
+      _renderWarp(dt);
+    } else {
+      warpMesh.visible = false;
+      document.getElementById('warp-overlay').style.opacity = 0;
+    }
+    return;
+  }
+  if (!travelDest) return;
+
+  const dist = camera.position.distanceTo(travelDest.position);
+  const maxSpd = TRAVEL_SPEEDS[travelSpeedIdx].au_s;
+  const accelT = 3.0;
+
+  // Arrival
+  if (dist < Math.max(0.5, travelSpeed * 0.15)) {
+    camera.position.copy(travelDest.position);
+    if (travelDest.simbadResult) travelToSIMBADResult(travelDest.simbadResult, true);
+    if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
+      currentScale = travelDest.scaleLevel; applyScale();
+    }
+    abortTravel(); return;
+  }
+
+  // Direction
+  _tD.subVectors(travelDest.position, camera.position).normalize();
+
+  // Speed ramp (accel / decel)
+  const decelDist = maxSpd * accelT;
+  if (dist < decelDist) {
+    travelSpeed = maxSpd * Math.max(0.005, (dist / decelDist) ** 2);
+  } else {
+    travelSpeed = Math.min(maxSpd, travelSpeed + maxSpd / accelT * dt);
+  }
+
+  // Move
+  camera.position.addScaledVector(_tD, travelSpeed * dt);
+
+  // Smooth camera orientation toward destination
+  const ty = Math.atan2(-_tD.x, -_tD.z);
+  const tp = Math.asin(Math.max(-1, Math.min(1, _tD.y)));
+  const ls = Math.min(1, dt * 3.5);
+  yaw   += (ty - yaw)   * ls;
+  pitch += (tp - pitch) * ls;
+
+  // Camera shake at warp speeds
+  const sf = Math.min(1, travelSpeed / C_AU_S);
+  if (sf > 0.05) {
+    const sh = sf * sf * 0.0025;
+    camera.position.x += (Math.random() - 0.5) * sh;
+    camera.position.y += (Math.random() - 0.5) * sh;
+    camera.position.z += (Math.random() - 0.5) * sh;
+  }
+
+  _renderWarp(dt);
+
+  // In-flight HUD
+  const eta = dist / travelSpeed;
+  document.getElementById('t-spd').textContent  = formatSpeed(travelSpeed);
+  document.getElementById('t-dist').textContent = formatDist(dist);
+  document.getElementById('t-eta').textContent  =
+    eta > 3.156e7 ? (eta/3.156e7).toFixed(1)+'yr' :
+    eta > 86400   ? (eta/86400).toFixed(1)+'d'    :
+    eta > 3600    ? (eta/3600).toFixed(1)+'hr'    :
+    eta > 60      ? (eta/60).toFixed(1)+'min'     : eta.toFixed(0)+'s';
+}
+
+function _renderWarp(dt) {
+  const sf = Math.min(1, travelSpeed / (C_AU_S * 5));
+  const intensity = sf * sf;
+  document.getElementById('warp-overlay').style.opacity = Math.min(0.9, intensity * 0.85);
+  if (intensity < 0.002) { warpMesh.visible = false; return; }
+  warpMesh.visible = true;
+  warpMat.opacity  = Math.min(0.95, 0.15 + intensity * 0.8);
+
+  _tR.set(_tD.z, 0, -_tD.x).normalize();
+  if (_tR.lengthSq() < 0.001) _tR.set(1, 0, 0);
+  _tU.crossVectors(_tR, _tD);
+
+  const sc  = camera.far * 0.65;
+  const adv = travelSpeed * dt / sc;
+  const stk = Math.min(0.45, intensity * 0.25 + adv * 25) * sc;
+
+  for (let i = 0; i < WARP_N; i++) {
+    _wZ[i] += adv;
+    if (_wZ[i] > 0.06) { _wZ[i] = -(0.05 + Math.random() * 0.85); _wR[i] = 0.005 + Math.random() * 0.11; _wA[i] = Math.random() * Math.PI * 2; }
+    const z  = -_wZ[i] * sc, r = _wR[i] * sc, a = _wA[i];
+    const rx = r * Math.cos(a), ry = r * Math.sin(a);
+    const hx = camera.position.x + _tD.x*z + _tR.x*rx + _tU.x*ry;
+    const hy = camera.position.y + _tD.y*z + _tR.y*rx + _tU.y*ry;
+    const hz = camera.position.z + _tD.z*z + _tR.z*rx + _tU.z*ry;
+    const tz2= Math.min(0, z - stk);
+    const tx = camera.position.x + _tD.x*tz2 + _tR.x*rx + _tU.x*ry;
+    const ty = camera.position.y + _tD.y*tz2 + _tR.y*rx + _tU.y*ry;
+    const tw = camera.position.z + _tD.z*tz2 + _tR.z*rx + _tU.z*ry;
+    warpBuf[i*6]=hx; warpBuf[i*6+1]=hy; warpBuf[i*6+2]=hz;
+    warpBuf[i*6+3]=tx; warpBuf[i*6+4]=ty; warpBuf[i*6+5]=tw;
+  }
+  warpGeo.attributes.position.needsUpdate = true;
+}
+
+// ═══════════════════════════════════════════════
 //  CAMERA CONTROLS
 // ═══════════════════════════════════════════════
 const keys = {};
@@ -982,8 +1315,11 @@ document.getElementById('controls-overlay').addEventListener('click', e => {
 });
 
 document.addEventListener('keydown', e => {
-  if (searchOpen) { if (e.code === 'Escape') closeSearch(); return; }
-  if (controlsOpen) { if (e.code === 'Escape' || e.code === 'KeyC') toggleControls(); return; }
+  if (searchOpen)      { if (e.code === 'Escape') closeSearch();      return; }
+  if (travelPanelOpen) { if (e.code === 'Escape' || e.code === 'KeyT') closeTravelPanel(); return; }
+  if (controlsOpen)    { if (e.code === 'Escape' || e.code === 'KeyC') toggleControls();   return; }
+  if (travelActive)    { if (e.code === 'Escape') abortTravel();       return; }
+  if (e.code === 'KeyT') { openTravelPanel(); e.preventDefault(); return; }
   if (e.code === 'KeyC') { toggleControls(); e.preventDefault(); return; }
   if (e.code === 'KeyF') { openSearch(); e.preventDefault(); return; }
   keys[e.code] = true;
@@ -997,7 +1333,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
 document.addEventListener('mousemove', e => {
-  if (!mouseDown || !started) return;
+  if (!mouseDown || !started || travelActive) return;
   yaw -= e.movementX * 0.003;
   pitch -= e.movementY * 0.003;
   pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, pitch));
@@ -1252,6 +1588,7 @@ function animate(now) {
   // Update body positions ref
   bodyPositions[0].pos.set(0, 0, 0);
 
+  updateTravel(dt);
   updateHUD();
   updateLabels();
   renderer.render(scene, camera);
