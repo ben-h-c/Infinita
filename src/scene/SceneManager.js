@@ -1193,52 +1193,96 @@ function updateTravel(dt) {
   }
   if (!travelDest) return;
 
-  travelElapsed = Math.min(travelElapsed + dt, TRAVEL_DURATION);
-  const p = travelElapsed / TRAVEL_DURATION; // 0 → 1
+  // Compute stop point: offset from object center by its orbit radius
+  const stopR = travelDest.radius || 0.3;
+  const _stopDir = new THREE.Vector3().subVectors(travelDest.position, travelOrigin).normalize();
+  const stopPt = travelDest.position.clone().addScaledVector(_stopDir, -stopR);
 
-  // EaseInOutCubic: slow launch, fast cruise, smooth arrival
-  const ease = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p+2, 3)/2;
+  if (exploreMode) {
+    // ── Explore mode: fixed 3.5s cinematic travel ──
+    travelElapsed = Math.min(travelElapsed + dt, TRAVEL_DURATION);
+    const p = travelElapsed / TRAVEL_DURATION;
+    const ease = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p+2, 3)/2;
+    camera.position.lerpVectors(travelOrigin, stopPt, ease);
+    const warpInt = Math.sin(p * Math.PI);
+    travelSpeed = C_AU_S * warpInt;
+    _tD.copy(_stopDir);
 
-  // Lerp camera position along straight path
-  camera.position.lerpVectors(travelOrigin, travelDest.position, ease);
+    const ty = Math.atan2(-_tD.x, -_tD.z);
+    const tp = Math.asin(Math.max(-1, Math.min(1, _tD.y)));
+    yaw   += (ty - yaw)   * Math.min(1, dt * 4);
+    pitch += (tp - pitch) * Math.min(1, dt * 4);
 
-  // Warp intensity: bell curve — ramps up fast, fades into arrival
-  const warpInt = Math.sin(p * Math.PI);
-  travelSpeed = C_AU_S * warpInt;
-
-  // Fixed travel direction (origin → dest) for consistent streak orientation
-  _tD.subVectors(travelDest.position, travelOrigin).normalize();
-
-  // Camera swings to face destination
-  const ty = Math.atan2(-_tD.x, -_tD.z);
-  const tp = Math.asin(Math.max(-1, Math.min(1, _tD.y)));
-  yaw   += (ty - yaw)   * Math.min(1, dt * 4);
-  pitch += (tp - pitch) * Math.min(1, dt * 4);
-
-  // Turbulence during peak warp
-  if (warpInt > 0.35) {
-    const sh = warpInt * warpInt * 0.0022;
-    camera.position.x += (Math.random()-0.5)*sh;
-    camera.position.y += (Math.random()-0.5)*sh;
-    camera.position.z += (Math.random()-0.5)*sh;
-  }
-
-  renderWarp(dt, travelActive, travelSpeed, C_AU_S, _tD);
-
-  // HUD countdown
-  const rem = Math.max(0, TRAVEL_DURATION - travelElapsed);
-  document.getElementById('t-spd').textContent  = formatSpeed(travelSpeed);
-  document.getElementById('t-dist').textContent = formatDist(camera.position.distanceTo(travelDest.position));
-  document.getElementById('t-eta').textContent  = rem.toFixed(1) + 's';
-
-  // Arrival
-  if (p >= 1) {
-    camera.position.copy(travelDest.position);
-    if (travelDest.simbadResult) travelToSIMBADResult(travelDest.simbadResult, true);
-    if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
-      currentScale = travelDest.scaleLevel; applyScale();
+    if (warpInt > 0.35) {
+      const sh = warpInt * warpInt * 0.0022;
+      camera.position.x += (Math.random()-0.5)*sh;
+      camera.position.y += (Math.random()-0.5)*sh;
+      camera.position.z += (Math.random()-0.5)*sh;
     }
-    abortTravel(true);
+
+    renderWarp(dt, travelActive, travelSpeed, C_AU_S, _tD);
+
+    const rem = Math.max(0, TRAVEL_DURATION - travelElapsed);
+    document.getElementById('t-spd').textContent  = formatSpeed(travelSpeed);
+    document.getElementById('t-dist').textContent = formatDist(camera.position.distanceTo(stopPt));
+    document.getElementById('t-eta').textContent  = rem.toFixed(1) + 's';
+
+    if (p >= 1) {
+      camera.position.copy(stopPt);
+      if (travelDest.simbadResult) travelToSIMBADResult(travelDest.simbadResult, true);
+      if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
+        currentScale = travelDest.scaleLevel; applyScale();
+      }
+      abortTravel(true);
+    }
+  } else {
+    // ── Nav Computer: respect user-chosen speed ──
+    const chosenAuS = TRAVEL_SPEEDS[travelSpeedIdx].au_s;
+    travelSpeed = chosenAuS;
+    _tD.copy(_stopDir);
+
+    // Move camera at chosen speed
+    const step = chosenAuS * dt;
+    const remaining = camera.position.distanceTo(stopPt);
+    if (step >= remaining) {
+      camera.position.copy(stopPt);
+    } else {
+      camera.position.addScaledVector(_tD, step);
+    }
+
+    // Camera faces destination
+    const ty = Math.atan2(-_tD.x, -_tD.z);
+    const tp = Math.asin(Math.max(-1, Math.min(1, _tD.y)));
+    yaw   += (ty - yaw)   * Math.min(1, dt * 4);
+    pitch += (tp - pitch) * Math.min(1, dt * 4);
+
+    // Turbulence at high speed
+    const warpInt = Math.min(1, chosenAuS / C_AU_S);
+    if (warpInt > 0.35) {
+      const sh = warpInt * warpInt * 0.0022;
+      camera.position.x += (Math.random()-0.5)*sh;
+      camera.position.y += (Math.random()-0.5)*sh;
+      camera.position.z += (Math.random()-0.5)*sh;
+    }
+
+    renderWarp(dt, travelActive, travelSpeed, C_AU_S, _tD);
+
+    // HUD: show speed, remaining distance, ETA
+    const distLeft = camera.position.distanceTo(stopPt);
+    const eta = chosenAuS > 0 ? distLeft / chosenAuS : Infinity;
+    document.getElementById('t-spd').textContent  = formatSpeed(chosenAuS);
+    document.getElementById('t-dist').textContent = formatDist(distLeft);
+    document.getElementById('t-eta').textContent  = eta < 3600 ? eta.toFixed(1) + 's' : eta < 86400 ? (eta/3600).toFixed(1) + 'h' : (eta/86400).toFixed(1) + 'd';
+
+    // Arrival
+    if (camera.position.distanceTo(stopPt) < step * 0.5 || camera.position.distanceTo(stopPt) < 0.0001) {
+      camera.position.copy(stopPt);
+      if (travelDest.simbadResult) travelToSIMBADResult(travelDest.simbadResult, true);
+      if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
+        currentScale = travelDest.scaleLevel; applyScale();
+      }
+      abortTravel(true);
+    }
   }
 }
 
@@ -1499,6 +1543,14 @@ document.getElementById('splash-explore-btn').addEventListener('click', () => {
 document.getElementById('splash-launches-btn').addEventListener('click', () => {
   document.getElementById('splash').classList.add('hidden');
   openLaunchHistory();
+});
+document.getElementById('hud-back-btn').addEventListener('click', () => {
+  started = false;
+  document.getElementById('hud').classList.remove('active');
+  document.getElementById('splash').classList.remove('hidden');
+  if (exploreMode) stopExploreMode();
+  if (travelActive) abortTravel();
+  if (_arrivalOrbit.active) _arrivalOrbit.active = false;
 });
 initLaunchHistory(() => started);
 initUFO(scene, camera, () => ({ currentScale, exploreMode, started }));

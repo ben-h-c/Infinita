@@ -19,7 +19,7 @@ function App() {
 
       <div id="splash">
         <div className="splash-inner">
-          <div className="splash-title">UNIVERSE EXPLORER</div>
+          <div className="splash-title">INFINITA</div>
           <div className="splash-sub">Navigate the cosmos</div>
           <div className="splash-buttons">
             <button className="splash-btn splash-btn-primary" id="splash-explore-btn">
@@ -79,6 +79,7 @@ function App() {
         </div>
 
         <div className="hud-bl">
+          <button className="lh-back-btn" id="hud-back-btn" style={{marginBottom:'8px',pointerEvents:'all'}}>← BACK</button>
           <div className="hud-panel controls-help" id="controls-help">
             <span>C</span> Show all controls
           </div>
