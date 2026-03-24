@@ -65,6 +65,18 @@
   .db-badge.loaded{background:rgba(0,255,100,0.05);border:1px solid rgba(0,255,100,0.2);color:#00ff64}
   .db-badge.error{background:rgba(255,50,50,0.08);border:1px solid rgba(255,50,50,0.25);color:#ff5555}
 
+  /* Controls overlay */
+  .controls-overlay{position:fixed;inset:0;z-index:150;background:rgba(0,5,12,0.88);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+  .controls-overlay.open{opacity:1;pointer-events:all}
+  .controls-card{background:rgba(0,12,25,0.97);border:1px solid rgba(0,238,255,0.18);border-radius:6px;padding:28px 32px;max-width:660px;width:90%;max-height:85vh;overflow-y:auto}
+  .controls-card-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;letter-spacing:4px;color:#0ef;margin-bottom:24px;text-align:center}
+  .controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 32px}
+  .ctrl-section-title{font-size:9px;text-transform:uppercase;letter-spacing:3px;color:rgba(0,238,255,0.35);margin-bottom:8px;border-bottom:1px solid rgba(0,238,255,0.08);padding-bottom:4px}
+  .ctrl-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .ctrl-key{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:#0ef;white-space:nowrap;background:rgba(0,238,255,0.06);border:1px solid rgba(0,238,255,0.18);border-radius:2px;padding:1px 6px}
+  .ctrl-desc{font-size:11px;color:rgba(0,238,255,0.5);margin-left:12px;text-align:right}
+  .controls-footer{text-align:center;margin-top:20px;font-size:10px;color:rgba(0,238,255,0.2);letter-spacing:2px}
+
   /* Search panel */
   .search-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
   .search-panel{background:rgba(0,8,18,0.96);border:1px solid rgba(0,238,255,0.2);border-radius:4px;padding:16px;width:380px;pointer-events:all;display:none}
@@ -130,11 +142,7 @@
 
   <div class="hud-bl">
     <div class="hud-panel controls-help" id="controls-help">
-      <span>WASD</span> Move &nbsp; <span>Mouse</span> Look<br>
-      <span>Scroll</span> Speed &nbsp; <span>Space/Shift</span> Up/Down<br>
-      <span>1-6</span> Time speed &nbsp; <span>P</span> Pause<br>
-      <span>Tab</span> Scale level &nbsp; <span>H</span> Toggle HUD<br>
-      <span>Q/E</span> Roll &nbsp; <span>G</span> Go to nearest &nbsp; <span>F</span> Search
+      <span>C</span> Show all controls
     </div>
   </div>
 
@@ -142,6 +150,54 @@
     <div class="hud-panel">
       <div class="hud-label">Position (AU)</div>
       <div class="hud-small" id="hud-pos">x: 0 y: 0 z: 0</div>
+    </div>
+  </div>
+
+  <!-- Controls overlay -->
+  <div class="controls-overlay" id="controls-overlay">
+    <div class="controls-card">
+      <div class="controls-card-title">CONTROLS</div>
+      <div class="controls-grid">
+
+        <div>
+          <div class="ctrl-section-title">Navigation</div>
+          <div class="ctrl-row"><span class="ctrl-key">W / S</span><span class="ctrl-desc">Fly forward / back</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">A / D</span><span class="ctrl-desc">Strafe left / right</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Space</span><span class="ctrl-desc">Fly up</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Shift</span><span class="ctrl-desc">Fly down</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Mouse drag</span><span class="ctrl-desc">Look around</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Q / E</span><span class="ctrl-desc">Roll left / right</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Scroll</span><span class="ctrl-desc">Adjust speed</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">G</span><span class="ctrl-desc">Jump to nearest body</span></div>
+        </div>
+
+        <div>
+          <div class="ctrl-section-title">Time</div>
+          <div class="ctrl-row"><span class="ctrl-key">1</span><span class="ctrl-desc">0.1 day/s</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">2</span><span class="ctrl-desc">1 day/s</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">3</span><span class="ctrl-desc">10 days/s</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">4</span><span class="ctrl-desc">100 days/s</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">5</span><span class="ctrl-desc">~3 years/s</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">6</span><span class="ctrl-desc">~27 years/s</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">P</span><span class="ctrl-desc">Pause / resume time</span></div>
+        </div>
+
+        <div>
+          <div class="ctrl-section-title">View</div>
+          <div class="ctrl-row"><span class="ctrl-key">Tab</span><span class="ctrl-desc">Cycle scale level</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">H</span><span class="ctrl-desc">Toggle HUD</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">C</span><span class="ctrl-desc">Show / hide controls</span></div>
+        </div>
+
+        <div>
+          <div class="ctrl-section-title">Database &amp; Search</div>
+          <div class="ctrl-row"><span class="ctrl-key">F</span><span class="ctrl-desc">Open object search</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Enter</span><span class="ctrl-desc">Travel to result</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Esc</span><span class="ctrl-desc">Close search / controls</span></div>
+        </div>
+
+      </div>
+      <div class="controls-footer">PRESS C OR ESC TO CLOSE</div>
     </div>
   </div>
 
@@ -758,8 +814,19 @@ function getSpeedFromLevel(level) {
   return Math.pow(10, (level - 20) * 0.3);
 }
 
+let controlsOpen = false;
+function toggleControls() {
+  controlsOpen = !controlsOpen;
+  document.getElementById('controls-overlay').classList.toggle('open', controlsOpen);
+}
+document.getElementById('controls-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('controls-overlay')) toggleControls();
+});
+
 document.addEventListener('keydown', e => {
   if (searchOpen) { if (e.code === 'Escape') closeSearch(); return; }
+  if (controlsOpen) { if (e.code === 'Escape' || e.code === 'KeyC') toggleControls(); return; }
+  if (e.code === 'KeyC') { toggleControls(); e.preventDefault(); return; }
   if (e.code === 'KeyF') { openSearch(); e.preventDefault(); return; }
   keys[e.code] = true;
   if (e.code === 'KeyP') { timeRateIndex = timeRateIndex === 0 ? 2 : 0; }
