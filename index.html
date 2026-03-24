@@ -131,6 +131,24 @@
   /* ── Warp Overlay ── */
   #warp-overlay{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity 0.4s;background:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(80,140,255,0.06) 0%,transparent 50%,rgba(0,0,25,0.75) 100%)}
 
+  /* ── Explore Mode HUD ── */
+  #explore-hud{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:20;display:none;align-items:center;gap:9px;background:rgba(0,8,20,0.88);border:1px solid rgba(0,238,255,0.22);border-radius:20px;padding:7px 14px 7px 12px;pointer-events:all;white-space:nowrap;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 24px rgba(0,238,255,0.1)}
+  #explore-hud.active{display:flex}
+  .exp-icon{color:#0ef;font-size:13px;animation:pulse 2s ease-in-out infinite}
+  .exp-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(0,238,255,0.45)}
+  .exp-sep{color:rgba(0,238,255,0.18);font-size:10px}
+  .exp-dest{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#fff;letter-spacing:1px;min-width:120px;text-align:center}
+  .exp-status{font-size:9px;color:rgba(0,238,255,0.55);letter-spacing:2px;text-transform:uppercase;min-width:100px;text-align:center}
+  .exp-stop{padding:3px 10px;background:rgba(255,50,50,0.1);border:1px solid rgba(255,50,50,0.3);color:#f66;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:background 0.15s;margin-left:4px}
+  .exp-stop:hover{background:rgba(255,50,50,0.25)}
+
+  /* ── UFO Alert ── */
+  #ufo-alert{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:30;background:rgba(0,22,10,0.92);border:1px solid rgba(80,255,120,0.45);border-radius:3px;padding:7px 18px;display:none;align-items:center;gap:9px;pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px)}
+  #ufo-alert.show{display:flex;animation:ufo-pulse 0.5s ease-in-out infinite alternate}
+  .ufo-icon{font-size:18px}
+  .ufo-msg{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#6f6}
+  @keyframes ufo-pulse{0%{border-color:rgba(80,255,120,0.4);box-shadow:none}100%{border-color:rgba(80,255,120,0.9);box-shadow:0 0 18px rgba(80,255,120,0.25)}}
+
   /* ── Fun Facts Panel ── */
   #facts-panel{position:fixed;right:16px;bottom:16px;z-index:10;pointer-events:all;width:272px}
   .facts-card{background:rgba(0,10,22,0.88);border:1px solid rgba(0,238,255,0.15);border-radius:4px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 4px 32px rgba(0,0,0,0.5)}
@@ -261,6 +279,7 @@
         <div>
           <div class="ctrl-section-title">Database &amp; Travel</div>
           <div class="ctrl-row"><span class="ctrl-key">F</span><span class="ctrl-desc">Quick object search</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">R</span><span class="ctrl-desc">Random exploration mode</span></div>
           <div class="ctrl-row"><span class="ctrl-key">T</span><span class="ctrl-desc">Navigation Computer</span></div>
           <div class="ctrl-row"><span class="ctrl-key">Enter</span><span class="ctrl-desc">Travel to result</span></div>
           <div class="ctrl-row"><span class="ctrl-key">Esc</span><span class="ctrl-desc">Close / abort travel</span></div>
@@ -320,6 +339,23 @@
 
 <!-- Warp effect overlay -->
 <div id="warp-overlay"></div>
+
+<!-- Explore Mode HUD -->
+<div id="explore-hud">
+  <span class="exp-icon">⬡</span>
+  <span class="exp-label">Auto-Explore</span>
+  <span class="exp-sep">·</span>
+  <span id="exp-dest" class="exp-dest">—</span>
+  <span class="exp-sep">·</span>
+  <span id="exp-status" class="exp-status">—</span>
+  <button class="exp-stop" id="explore-stop-btn">■ STOP</button>
+</div>
+
+<!-- UFO Alert -->
+<div id="ufo-alert">
+  <span class="ufo-icon">🛸</span>
+  <span class="ufo-msg">UNIDENTIFIED CRAFT DETECTED</span>
+</div>
 
 <!-- Fun Facts Panel -->
 <div id="facts-panel">
@@ -1167,6 +1203,290 @@ const SUGGESTIONS = [
   },
 ];
 
+// ═══════════════════════════════════════════════
+//  RANDOM EXPLORATION MODE
+// ═══════════════════════════════════════════════
+let _exploreItinerary = null;
+function _getItinerary() {
+  if (_exploreItinerary) return _exploreItinerary;
+  _exploreItinerary = [
+    // ── Solar System ──
+    { name:'Sun',     scale:1, spIdx:7, dwell:11, vMult:4.5, getPos:()=>new THREE.Vector3(0,0,0),         r:()=>SUN_RADIUS_VIS },
+    { name:'Mercury', scale:1, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Mercury')?.mesh.position.clone(), r:()=>0.008 },
+    { name:'Venus',   scale:1, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Venus')?.mesh.position.clone(),   r:()=>0.014 },
+    { name:'Earth',   scale:1, spIdx:7, dwell:12, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Earth')?.mesh.position.clone(),   r:()=>0.015 },
+    { name:'Mars',    scale:1, spIdx:7, dwell:10, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Mars')?.mesh.position.clone(),    r:()=>0.011 },
+    { name:'Jupiter', scale:1, spIdx:7, dwell:13, vMult:7,   getPos:()=>planetMeshes.find(p=>p.data.name==='Jupiter')?.mesh.position.clone(), r:()=>0.055 },
+    { name:'Saturn',  scale:1, spIdx:7, dwell:14, vMult:7,   getPos:()=>planetMeshes.find(p=>p.data.name==='Saturn')?.mesh.position.clone(),  r:()=>0.055 },
+    { name:'Uranus',  scale:1, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Uranus')?.mesh.position.clone(),  r:()=>0.028 },
+    { name:'Neptune', scale:1, spIdx:7, dwell:10, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Neptune')?.mesh.position.clone(), r:()=>0.026 },
+    // ── Stellar Neighbors ──
+    { name:'Alpha Centauri', scale:2, spIdx:8, dwell:11, vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Alpha Centauri')?.position.clone(), r:()=>0.09 },
+    { name:'Sirius',         scale:2, spIdx:8, dwell:10, vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Sirius')?.position.clone(),         r:()=>0.10 },
+    { name:'Vega',           scale:2, spIdx:8, dwell:9,  vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Vega')?.position.clone(),           r:()=>0.08 },
+    { name:'Betelgeuse',     scale:2, spIdx:8, dwell:12, vMult:3, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Betelgeuse')?.position.clone(),     r:()=>0.18 },
+    { name:'Rigel',          scale:2, spIdx:8, dwell:9,  vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Rigel')?.position.clone(),          r:()=>0.12 },
+    // ── Cosmic ──
+    { name:'Andromeda Galaxy', scale:4, spIdx:9, dwell:16, vMult:1.2, getPos:()=>raDecToVec3(10.684,41.268,2.5e6*63241), r:()=>8e8 },
+  ];
+  return _exploreItinerary;
+}
+
+function _shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+let exploreMode     = false;
+let explorePhase    = 'idle';  // 'travel' | 'dwell' | 'gap'
+let exploreDwellT   = 0;
+let exploreGapT     = 0;
+let exploreQueue    = [];
+let exploreDest     = null;    // current itinerary entry
+let exploreOrbitAng = 0;
+
+function startExploreMode() {
+  exploreMode  = true;
+  explorePhase = 'gap';
+  exploreGapT  = 0;
+  // Start with solar system, then shuffle the rest
+  const it = _getItinerary();
+  const ss  = it.filter(d => d.scale === 1);
+  const rest = _shuffle(it.filter(d => d.scale !== 1));
+  exploreQueue = [..._shuffle(ss), ...rest];
+  document.getElementById('explore-hud').classList.add('active');
+  document.getElementById('exp-dest').textContent = 'INITIALISING…';
+  document.getElementById('exp-status').textContent = '';
+}
+
+function stopExploreMode() {
+  exploreMode  = false;
+  explorePhase = 'idle';
+  exploreDest  = null;
+  document.getElementById('explore-hud').classList.remove('active');
+}
+
+function _exploreLaunch() {
+  if (exploreQueue.length === 0) {
+    // Reshuffle when we run out
+    exploreQueue = _shuffle(_getItinerary());
+  }
+  exploreDest = exploreQueue.shift();
+  const pos = exploreDest.getPos();
+  if (!pos) { _exploreLaunch(); return; } // mesh not ready, skip
+
+  // Switch scale
+  if (currentScale !== exploreDest.scale) { currentScale = exploreDest.scale; applyScale(); }
+
+  // Inject travel destination
+  travelDest = { position: pos, name: exploreDest.name, scaleLevel: exploreDest.scale, distLY: pos.length()/63241 };
+  travelActive  = true;
+  travelSpeed   = 0;
+  travelSpeedIdx = exploreDest.spIdx;
+  document.getElementById('travel-speeds-grid').querySelectorAll('.travel-speed-btn').forEach((b,i)=>b.classList.toggle('selected',i===travelSpeedIdx));
+  document.getElementById('travel-hud').classList.add('active');
+  document.getElementById('travel-hud-dest').textContent = '→ ' + exploreDest.name.toUpperCase();
+  document.getElementById('exp-dest').textContent = exploreDest.name.toUpperCase();
+  document.getElementById('exp-status').textContent = 'EN ROUTE';
+  explorePhase = 'travel';
+}
+
+function updateExplore(dt) {
+  if (!exploreMode) return;
+
+  if (explorePhase === 'travel') {
+    if (!travelActive) {
+      // Arrived
+      explorePhase  = 'dwell';
+      exploreDwellT = 0;
+      exploreOrbitAng = yaw + Math.PI * 0.5; // start orbit tangent to current heading
+      document.getElementById('exp-status').textContent = 'ARRIVED';
+      // Random UFO chance on arrival
+      if (Math.random() < 0.38) setTimeout(spawnUFO, 1200 + Math.random() * 2500);
+    }
+  } else if (explorePhase === 'dwell') {
+    exploreDwellT += dt;
+    const remaining = exploreDest.dwell - exploreDwellT;
+
+    // Cinematic orbit around the destination
+    const target = exploreDest.getPos();
+    if (target) {
+      exploreOrbitAng += dt * 0.32;
+      const orbitR = Math.max(0.5, exploreDest.r() * exploreDest.vMult);
+      const height  = orbitR * 0.28;
+      camera.position.set(
+        target.x + Math.cos(exploreOrbitAng) * orbitR,
+        target.y + height + Math.sin(exploreOrbitAng * 0.4) * height * 0.4,
+        target.z + Math.sin(exploreOrbitAng) * orbitR
+      );
+      // Smoothly look at the object
+      const toT = new THREE.Vector3().subVectors(target, camera.position).normalize();
+      const ty = Math.atan2(-toT.x, -toT.z);
+      const tp = Math.asin(Math.max(-1, Math.min(1, toT.y)));
+      yaw   += (ty - yaw)   * Math.min(1, dt * 5);
+      pitch += (tp - pitch) * Math.min(1, dt * 5);
+      roll  += (0 - roll)   * Math.min(1, dt * 3);
+    }
+
+    const secs = Math.max(0, Math.ceil(remaining));
+    document.getElementById('exp-status').textContent = secs > 0 ? `DEPARTING IN ${secs}s` : 'DEPARTING…';
+
+    if (exploreDwellT >= exploreDest.dwell) {
+      explorePhase = 'gap';
+      exploreGapT  = 0;
+      document.getElementById('exp-status').textContent = 'NEXT DESTINATION…';
+    }
+  } else if (explorePhase === 'gap') {
+    exploreGapT += dt;
+    if (exploreGapT >= 2.5) _exploreLaunch();
+  }
+}
+
+document.getElementById('explore-stop-btn').addEventListener('click', stopExploreMode);
+
+// ═══════════════════════════════════════════════
+//  UFO EASTER EGG
+// ═══════════════════════════════════════════════
+let _ufoGroup   = null;
+let _ufoLights  = [];
+let _ufoActive  = false;
+let _ufoVel     = new THREE.Vector3();
+let _ufoLife    = 0;
+let _ufoMax     = 6;
+let _ufoAlertT  = 0;
+let _ufoPassive = 70 + Math.random() * 80; // seconds until passive spawn
+
+function _buildUFO() {
+  const g = new THREE.Group();
+  // Hull (flattened sphere)
+  const hullGeo = new THREE.SphereGeometry(1, 22, 10);
+  const hullMat = new THREE.MeshPhongMaterial({ color:0x8899bb, shininess:110, specular:0x334466, emissive:0x0a1120 });
+  const hull = new THREE.Mesh(hullGeo, hullMat);
+  hull.scale.set(1, 0.22, 1);
+  g.add(hull);
+  // Rim disc
+  const rimGeo = new THREE.CylinderGeometry(1.62, 1.40, 0.09, 22);
+  const rimMat = new THREE.MeshPhongMaterial({ color:0x6677aa, shininess:160 });
+  g.add(new THREE.Mesh(rimGeo, rimMat));
+  // Cockpit dome
+  const domeGeo = new THREE.SphereGeometry(0.44, 14, 8, 0, Math.PI*2, 0, Math.PI/2);
+  const domeMat = new THREE.MeshPhongMaterial({ color:0x44ffbb, transparent:true, opacity:0.55, emissive:0x1a4433 });
+  const dome = new THREE.Mesh(domeGeo, domeMat);
+  dome.position.y = 0.19;
+  g.add(dome);
+  // Tractor beam cone (subtle)
+  const beamGeo = new THREE.ConeGeometry(0.55, 1.3, 12, 1, true);
+  const beamMat = new THREE.MeshBasicMaterial({ color:0x66ffcc, transparent:true, opacity:0.12, side:THREE.DoubleSide });
+  const beam = new THREE.Mesh(beamGeo, beamMat);
+  beam.position.y = -0.75; beam.rotation.x = Math.PI;
+  g.add(beam);
+  // Undercarriage flat panel
+  const panGeo = new THREE.CylinderGeometry(0.75, 0.75, 0.06, 14);
+  const panMat = new THREE.MeshPhongMaterial({ color:0x445566 });
+  const pan = new THREE.Mesh(panGeo, panMat);
+  pan.position.y = -0.08;
+  g.add(pan);
+  // Rim lights (6 multicolour)
+  _ufoLights = [];
+  const lc = [0xff2233, 0x22ff44, 0x2244ff, 0xffee11, 0xff22ee, 0x22eeff];
+  for (let i = 0; i < 6; i++) {
+    const ang = (i/6) * Math.PI * 2;
+    const lg  = new THREE.SphereGeometry(0.13, 6, 4);
+    const lm  = new THREE.MeshBasicMaterial({ color: lc[i] });
+    const lmesh = new THREE.Mesh(lg, lm);
+    lmesh.position.set(Math.cos(ang)*1.52, 0.02, Math.sin(ang)*1.52);
+    g.add(lmesh);
+    _ufoLights.push({ mesh: lmesh, mat: lm, col: lc[i], ph: (i/6)*Math.PI*2 });
+  }
+  g.visible = false;
+  scene.add(g);
+  return g;
+}
+
+const _UFO_MSGS = [
+  '⚠ UNIDENTIFIED CRAFT DETECTED',
+  '👽 UNKNOWN VESSEL INTERCEPTED',
+  '⚠ ANOMALOUS OBJECT IN VICINITY',
+  '🛸 EXTRATERRESTRIAL CONTACT?',
+  '⚠ UNREGISTERED SHIP ON SENSORS',
+];
+
+function spawnUFO() {
+  if (!_ufoGroup) _ufoGroup = _buildUFO();
+  if (_ufoActive) return;
+
+  // Scale relative to scale level so it's always visually prominent
+  const sc = currentScale <= 1 ? 0.28 : currentScale === 2 ? 3200 : camera.far * 0.0008;
+  _ufoGroup.scale.setScalar(sc);
+
+  const fwd   = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+  const right = new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);
+  const up    = new THREE.Vector3(0,1,0);
+
+  const side  = (Math.random() > 0.5 ? 1 : -1) * (6 + Math.random() * 5) * sc;
+  const depth = (14 + Math.random() * 6) * sc;
+  const vert  = (Math.random() - 0.5) * 4 * sc;
+
+  const sp = camera.position.clone()
+    .addScaledVector(fwd, depth)
+    .addScaledVector(right, side)
+    .add(up.clone().multiplyScalar(vert));
+
+  _ufoGroup.position.copy(sp);
+
+  // Fly across + slightly forward — always visibly crosses the view
+  const crossDir = right.clone().multiplyScalar(-Math.sign(side))
+    .addScaledVector(fwd, 0.35 + Math.random()*0.25)
+    .addScaledVector(up, (Math.random()-0.5)*0.15)
+    .normalize();
+
+  _ufoVel.copy(crossDir).multiplyScalar(sc * 5.8);
+  _ufoGroup.rotation.y = Math.atan2(_ufoVel.x, _ufoVel.z);
+  _ufoGroup.visible = true;
+  _ufoActive = true;
+  _ufoLife   = 0;
+  _ufoMax    = 5 + Math.random() * 2.5;
+
+  // Alert notification
+  _ufoAlertT = 4.5;
+  const alertEl = document.getElementById('ufo-alert');
+  alertEl.querySelector('.ufo-msg').textContent = _UFO_MSGS[Math.floor(Math.random()*_UFO_MSGS.length)];
+  alertEl.classList.add('show');
+}
+
+function updateUFO(dt) {
+  // Passive spawn when not in explore mode
+  if (!exploreMode && started) {
+    _ufoPassive -= dt;
+    if (_ufoPassive <= 0) { _ufoPassive = 70 + Math.random()*90; spawnUFO(); }
+  }
+
+  if (_ufoActive && _ufoGroup) {
+    _ufoLife += dt;
+    if (_ufoLife >= _ufoMax) {
+      _ufoGroup.visible = false;
+      _ufoActive = false;
+    } else {
+      _ufoGroup.position.addScaledVector(_ufoVel, dt);
+      _ufoGroup.rotation.y += dt * 1.6;
+      // Gentle hover wobble
+      _ufoGroup.position.y += Math.sin(_ufoLife * 5.2) * _ufoGroup.scale.x * 0.008;
+      // Blink rim lights
+      const t = performance.now() / 1000;
+      _ufoLights.forEach(l => {
+        const on = Math.sin(t * 5 + l.ph) > 0.2;
+        l.mat.color.setHex(on ? l.col : 0x111122);
+      });
+    }
+  }
+
+  if (_ufoAlertT > 0) {
+    _ufoAlertT -= dt;
+    if (_ufoAlertT <= 0) document.getElementById('ufo-alert').classList.remove('show');
+  }
+}
+
 let _nearestBody = { name: 'Sun', rReal: 696340 };
 let _factsCollapsed = false;
 let _factsSubject   = null;
@@ -1549,12 +1869,13 @@ document.getElementById('travel-engage-btn').addEventListener('click', () => {
 });
 document.getElementById('travel-abort-btn').addEventListener('click', abortTravel);
 
-function abortTravel() {
+function abortTravel(arrived) {
   travelActive = false;
   travelSpeed  = 0;
   document.getElementById('travel-hud').classList.remove('active');
   document.getElementById('warp-overlay').style.opacity = 0;
   warpMesh.visible = false;
+  if (exploreMode && !arrived) stopExploreMode(); // user-aborted mid-flight
 }
 
 // ── Warp streak geometry ──────────────────────
@@ -1603,7 +1924,7 @@ function updateTravel(dt) {
     if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
       currentScale = travelDest.scaleLevel; applyScale();
     }
-    abortTravel(); return;
+    abortTravel(true); return;
   }
 
   // Direction
@@ -1723,7 +2044,14 @@ document.addEventListener('keydown', e => {
   if (searchOpen)      { if (e.code === 'Escape') closeSearch();      return; }
   if (travelPanelOpen) { if (e.code === 'Escape' || e.code === 'KeyT') closeTravelPanel(); return; }
   if (controlsOpen)    { if (e.code === 'Escape' || e.code === 'KeyC') toggleControls();   return; }
-  if (travelActive)    { if (e.code === 'Escape') abortTravel();       return; }
+  if (travelActive)    { if (e.code === 'Escape') { abortTravel(); return; } }
+  // Any movement key during explore dwell breaks out of cinematic mode
+  if (exploreMode && explorePhase === 'dwell') {
+    const movKeys = ['KeyW','KeyS','KeyA','KeyD','Space','ShiftLeft','ShiftRight','KeyQ','KeyE'];
+    if (movKeys.includes(e.code)) { stopExploreMode(); }
+  }
+  if (e.code === 'Escape' && exploreMode) { stopExploreMode(); return; }
+  if (e.code === 'KeyR') { exploreMode ? stopExploreMode() : startExploreMode(); e.preventDefault(); return; }
   if (e.code === 'KeyT') { openTravelPanel(); e.preventDefault(); return; }
   if (e.code === 'KeyC') { toggleControls(); e.preventDefault(); return; }
   if (e.code === 'KeyF') { openSearch(); e.preventDefault(); return; }
@@ -1974,28 +2302,33 @@ function animate(now) {
     });
   }
 
-  // Camera movement
+  // Camera movement (suppressed during cinematic dwell)
   const euler = new THREE.Euler(pitch, yaw, roll, 'YXZ');
   const forward = new THREE.Vector3(0, 0, -1).applyEuler(euler);
   const right = new THREE.Vector3(1, 0, 0).applyEuler(euler);
   const up = new THREE.Vector3(0, 1, 0);
 
-  const spd = moveSpeed * dt;
-  if (keys['KeyW']) camera.position.addScaledVector(forward, spd);
-  if (keys['KeyS']) camera.position.addScaledVector(forward, -spd);
-  if (keys['KeyA']) camera.position.addScaledVector(right, -spd);
-  if (keys['KeyD']) camera.position.addScaledVector(right, spd);
-  if (keys['Space']) camera.position.addScaledVector(up, spd);
-  if (keys['ShiftLeft'] || keys['ShiftRight']) camera.position.addScaledVector(up, -spd);
-  if (keys['KeyQ']) roll += dt * 1.5;
-  if (keys['KeyE']) roll -= dt * 1.5;
+  const _dwelling = exploreMode && explorePhase === 'dwell';
+  if (!_dwelling) {
+    const spd = moveSpeed * dt;
+    if (keys['KeyW']) camera.position.addScaledVector(forward, spd);
+    if (keys['KeyS']) camera.position.addScaledVector(forward, -spd);
+    if (keys['KeyA']) camera.position.addScaledVector(right, -spd);
+    if (keys['KeyD']) camera.position.addScaledVector(right, spd);
+    if (keys['Space']) camera.position.addScaledVector(up, spd);
+    if (keys['ShiftLeft'] || keys['ShiftRight']) camera.position.addScaledVector(up, -spd);
+    if (keys['KeyQ']) roll += dt * 1.5;
+    if (keys['KeyE']) roll -= dt * 1.5;
+  }
 
   camera.quaternion.setFromEuler(euler);
 
   // Update body positions ref
   bodyPositions[0].pos.set(0, 0, 0);
 
+  updateExplore(dt);
   updateTravel(dt);
+  updateUFO(dt);
   updateHUD();
   tickFacts(dt);
   updateLabels();
