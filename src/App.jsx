@@ -61,9 +61,6 @@ function App() {
             <div className="nearest-name" id="hud-nearest-name">Sun</div>
             <div className="nearest-info" id="hud-nearest-info">0 AU</div>
           </div>
-        </div>
-
-        <div className="hud-tr">
           <div className="hud-panel">
             <div className="hud-label">Scale Level</div>
             <div className="hud-value" id="hud-scale">Solar System</div>
@@ -84,7 +81,9 @@ function App() {
           </div>
         </div>
 
-        <div className="matrix-rain" id="matrix-rain"></div>
+        <div className="hud-tr">
+          <div className="matrix-rain" id="matrix-rain"></div>
+        </div>
 
         <div className="hud-bl">
           <button className="lh-back-btn" id="hud-back-btn" style={{marginBottom:'8px',pointerEvents:'all'}}>{'\u2190'} BACK</button>
