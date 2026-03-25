@@ -50,7 +50,7 @@ export function initComets(scene){
 }
 
 export function updateComets(dt,simTime,currentScale){
-  if(currentScale>1){ _cometObjs.forEach(o=>o.grp.visible=false); return; }
+  if(currentScale>0){ _cometObjs.forEach(o=>o.grp.visible=false); return; }
   _cometObjs.forEach(co=>{
     const pos=_cometPos(co.cd,simTime);
     const dist=pos.length();

@@ -185,6 +185,8 @@
   .facts-suggest-btn{display:block;width:100%;margin-top:10px;padding:7px 10px;background:rgba(255,185,0,0.07);border:1px solid rgba(255,185,0,0.2);color:#fb4;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;cursor:pointer;border-radius:2px;text-align:center;transition:background 0.15s}
   .facts-suggest-btn:hover{background:rgba(255,185,0,0.15)}
 
+  .beta-tag{display:inline-block;font-size:7px;letter-spacing:2px;padding:1px 5px;border-radius:2px;background:rgba(255,185,0,0.12);border:1px solid rgba(255,185,0,0.35);color:#fb4;vertical-align:middle;margin-left:6px;font-weight:400}
+
   /* ── Splash Buttons ── */
   #splash{cursor:default}
   .splash-buttons{display:flex;gap:18px;margin-top:48px;justify-content:center;flex-wrap:wrap}
@@ -384,6 +386,13 @@
 .sim-ticker{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,8,18,0.9));padding:10px 14px 8px;pointer-events:none;z-index:2}
 .sim-ticker-text{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,238,255,0.7);letter-spacing:1px;white-space:nowrap;overflow:hidden}
 .sim-status{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(0,238,255,0.4)}
+.sim-slider{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:rgba(0,238,255,0.15);border-radius:2px;outline:none;margin:6px 0}
+.sim-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#0ef;cursor:pointer;border:2px solid rgba(0,238,255,0.5)}
+.sim-slider-val{font-family:'Orbitron',sans-serif;font-size:10px;color:#0ef;text-align:right;margin-top:2px}
+.sim-spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sim-spec{background:rgba(0,238,255,0.03);border:1px solid rgba(0,238,255,0.08);border-radius:2px;padding:6px 8px}
+.sim-spec-label{display:block;font-size:7px;letter-spacing:1.5px;color:rgba(0,238,255,0.4);text-transform:uppercase;margin-bottom:3px}
+.sim-spec-val{display:block;font-family:'Orbitron',sans-serif;font-size:10px;color:#0ef;font-weight:700}
 .sim-winner-badge{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:4px;padding:10px 22px;border-radius:4px;z-index:3;animation:winnerFlash 0.6s ease-in-out 3 alternate;pointer-events:none}
 .sim-winner-badge.show-a{display:block;color:#0ef;border:2px solid #0ef;background:rgba(0,238,255,0.1);box-shadow:0 0 30px rgba(0,238,255,0.3)}
 .sim-winner-badge.show-b{display:block;color:#f80;border:2px solid #f80;background:rgba(255,136,0,0.1);box-shadow:0 0 30px rgba(255,136,0,0.3)}

@@ -570,27 +570,27 @@ function createLabel(text) {
 // Background reference objects — far-away labels visible at various scales
 const _bgRefObjects = [];
 const _bgRefData = [
-  // Nearby stars visible at stellar scale (scale 2)
-  { name:'Proxima Centauri', dist:4.24, scale:2 },{ name:'Wolf 359', dist:7.86, scale:2 },
-  { name:'Lalande 21185', dist:8.31, scale:2 },{ name:'Ross 154', dist:9.69, scale:2 },
-  { name:'Epsilon Eridani', dist:10.5, scale:2 },{ name:'61 Cygni', dist:11.4, scale:2 },
-  { name:'Tau Ceti', dist:11.9, scale:2 },{ name:'Polaris', dist:433, scale:2 },
-  { name:'Deneb', dist:2600, scale:2 },{ name:'Canopus', dist:310, scale:2 },
-  { name:'Arcturus', dist:36.7, scale:2 },{ name:'Capella', dist:42.9, scale:2 },
-  { name:'Aldebaran', dist:65.3, scale:2 },{ name:'Spica', dist:250, scale:2 },
-  { name:'Antares', dist:550, scale:2 },{ name:'Fomalhaut', dist:25.1, scale:2 },
-  // Galactic objects visible at galactic scale (scale 3)
-  { name:'Orion Nebula', dist:1344, scale:3 },{ name:'Pleiades', dist:444, scale:3 },
-  { name:'Crab Nebula', dist:6500, scale:3 },{ name:'Eagle Nebula', dist:7000, scale:3 },
-  { name:'Sagittarius A*', dist:26000, scale:3 },{ name:'Carina Nebula', dist:8500, scale:3 },
-  { name:'Omega Centauri', dist:15800, scale:3 },{ name:'47 Tucanae', dist:13000, scale:3 },
-  { name:'Horsehead Nebula', dist:1375, scale:3 },{ name:'Ring Nebula', dist:2283, scale:3 },
-  // Cosmic objects visible at cosmic scale (scale 4)
-  { name:'Andromeda (M31)', dist:2.537e6, scale:4 },{ name:'Triangulum (M33)', dist:2.73e6, scale:4 },
-  { name:'Large Magellanic Cloud', dist:160000, scale:4 },{ name:'Small Magellanic Cloud', dist:200000, scale:4 },
-  { name:'Whirlpool Galaxy (M51)', dist:23e6, scale:4 },{ name:'Sombrero Galaxy (M104)', dist:29e6, scale:4 },
-  { name:'Centaurus A', dist:13e6, scale:4 },{ name:'Coma Cluster', dist:321e6, scale:4 },
-  { name:'Virgo Cluster', dist:54e6, scale:4 },{ name:'Hercules Cluster', dist:500e6, scale:4 },
+  // Nearby stars visible at stellar scale (scale 1)
+  { name:'Proxima Centauri', dist:4.24, scale:1 },{ name:'Wolf 359', dist:7.86, scale:1 },
+  { name:'Lalande 21185', dist:8.31, scale:1 },{ name:'Ross 154', dist:9.69, scale:1 },
+  { name:'Epsilon Eridani', dist:10.5, scale:1 },{ name:'61 Cygni', dist:11.4, scale:1 },
+  { name:'Tau Ceti', dist:11.9, scale:1 },{ name:'Polaris', dist:433, scale:1 },
+  { name:'Deneb', dist:2600, scale:1 },{ name:'Canopus', dist:310, scale:1 },
+  { name:'Arcturus', dist:36.7, scale:1 },{ name:'Capella', dist:42.9, scale:1 },
+  { name:'Aldebaran', dist:65.3, scale:1 },{ name:'Spica', dist:250, scale:1 },
+  { name:'Antares', dist:550, scale:1 },{ name:'Fomalhaut', dist:25.1, scale:1 },
+  // Galactic objects visible at galactic scale (scale 2)
+  { name:'Orion Nebula', dist:1344, scale:2 },{ name:'Pleiades', dist:444, scale:2 },
+  { name:'Crab Nebula', dist:6500, scale:2 },{ name:'Eagle Nebula', dist:7000, scale:2 },
+  { name:'Sagittarius A*', dist:26000, scale:2 },{ name:'Carina Nebula', dist:8500, scale:2 },
+  { name:'Omega Centauri', dist:15800, scale:2 },{ name:'47 Tucanae', dist:13000, scale:2 },
+  { name:'Horsehead Nebula', dist:1375, scale:2 },{ name:'Ring Nebula', dist:2283, scale:2 },
+  // Cosmic objects visible at cosmic scale (scale 3)
+  { name:'Andromeda (M31)', dist:2.537e6, scale:3 },{ name:'Triangulum (M33)', dist:2.73e6, scale:3 },
+  { name:'Large Magellanic Cloud', dist:160000, scale:3 },{ name:'Small Magellanic Cloud', dist:200000, scale:3 },
+  { name:'Whirlpool Galaxy (M51)', dist:23e6, scale:3 },{ name:'Sombrero Galaxy (M104)', dist:29e6, scale:3 },
+  { name:'Centaurus A', dist:13e6, scale:3 },{ name:'Coma Cluster', dist:321e6, scale:3 },
+  { name:'Virgo Cluster', dist:54e6, scale:3 },{ name:'Hercules Cluster', dist:500e6, scale:3 },
 ];
 
 function initLabels() {
@@ -602,10 +602,10 @@ function initLabels() {
   });
   // Hardcoded named stars
   namedStarMeshes.forEach(m => {
-    labelsList.push({ el: createLabel(m.userData.name), mesh: m, scaleLevel: 2 });
+    labelsList.push({ el: createLabel(m.userData.name), mesh: m, scaleLevel: 1 });
   });
   // "You Are Here" marker in the Milky Way
-  labelsList.push({ el: createLabel('You Are Here \u2609'), mesh: youAreHere, scaleLevel: 3 });
+  labelsList.push({ el: createLabel('You Are Here \u2609'), mesh: youAreHere, scaleLevel: 2 });
   // Background reference objects — placed at random angles, correct distances
   _bgRefData.forEach(obj => {
     const dAU = obj.dist * 63241; // ly to AU
@@ -696,7 +696,7 @@ async function fetchRealStars() {
       const mat  = new THREE.MeshBasicMaterial({ color: col });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.copy(raDecToVec3(ra, dec, distAU));
-      mesh.visible = (currentScale === 2);
+      mesh.visible = (currentScale === 1);
       mesh.userData = { name, distLY, temp, vmag, type: 'star' };
       scene.add(mesh);
       liveStarMeshes.push(mesh);
@@ -732,7 +732,7 @@ async function fetchExoplanets() {
       const mat = new THREE.MeshBasicMaterial({ color: 0xff8c00 });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.copy(pos);
-      mesh.visible = (currentScale === 2);
+      mesh.visible = (currentScale === 1);
       mesh.userData = { name: hostName, planets: star.planets, distLY, type: 'exo_system' };
       scene.add(mesh);
       exoplanetMarkers.push(mesh);
@@ -789,7 +789,7 @@ function loadDeepSkyObjects() {
     }));
     sprite.position.copy(pos);
     sprite.scale.setScalar(r * 0.5);
-    sprite.visible = (currentScale === 3);
+    sprite.visible = (currentScale === 2);
     scene.add(sprite);
     deepSkyMeshes.push(sprite);
 
@@ -798,7 +798,7 @@ function loadDeepSkyObjects() {
 
     // Label only brighter objects (mag < 9)
     if (obj.mag < 9) {
-      labelsList.push({ el: createLabel(displayName), mesh: sprite, scaleLevel: obj.type === 'galaxy' ? 4 : 3 });
+      labelsList.push({ el: createLabel(displayName), mesh: sprite, scaleLevel: obj.type === 'galaxy' ? 3 : 2 });
     }
     searchableObjects.push({ name: displayName, distLY, typeLabel: typeLabels[obj.type] || 'Deep Sky', mesh: sprite });
   });
@@ -818,7 +818,7 @@ function loadGaiaStars() {
       const mat = new THREE.MeshBasicMaterial({ color: col });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.copy(raDecToVec3(s.ra, s.dec, s.distAU));
-      mesh.visible = (currentScale === 2);
+      mesh.visible = (currentScale === 1);
       mesh.userData = { name: 'Gaia ' + (s.sourceId || '').toString().slice(-6), distLY: s.distLY, temp: s.temp, type: 'star' };
       scene.add(mesh);
       liveStarMeshes.push(mesh);
@@ -835,7 +835,7 @@ function loadGaiaStars() {
 
       // Only label bright stars
       if ((s.mag || 99) < 3.5) {
-        labelsList.push({ el: createLabel(mesh.userData.name), mesh, scaleLevel: 2 });
+        labelsList.push({ el: createLabel(mesh.userData.name), mesh, scaleLevel: 1 });
       }
     });
     console.log(`Loaded ${stars.length} Gaia stars`);
@@ -867,13 +867,13 @@ function loadNearbyGalaxies() {
       }));
       sprite.position.copy(pos);
       sprite.scale.setScalar(8e8 * 0.4);
-      sprite.visible = (currentScale === 4);
+      sprite.visible = (currentScale === 3);
       scene.add(sprite);
       galaxyCatalogMeshes.push(sprite);
 
       // Label brighter galaxies
       if ((g.mag || 99) < 12) {
-        labelsList.push({ el: createLabel(g.name), mesh: sprite, scaleLevel: 4 });
+        labelsList.push({ el: createLabel(g.name), mesh: sprite, scaleLevel: 3 });
       }
       searchableObjects.push({ name: g.name, distLY: g.distLY, typeLabel: 'Galaxy', mesh: sprite });
     });
@@ -957,24 +957,24 @@ let _exploreItinerary = null;
 function _getItinerary() {
   if (_exploreItinerary) return _exploreItinerary;
   _exploreItinerary = [
-    // ── Solar System ──
-    { name:'Sun',     scale:1, spIdx:7, dwell:11, vMult:4.5, getPos:()=>new THREE.Vector3(0,0,0),         r:()=>SUN_RADIUS_VIS },
-    { name:'Mercury', scale:1, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Mercury')?.mesh.position.clone(), r:()=>0.008 },
-    { name:'Venus',   scale:1, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Venus')?.mesh.position.clone(),   r:()=>0.014 },
-    { name:'Earth',   scale:1, spIdx:7, dwell:12, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Earth')?.mesh.position.clone(),   r:()=>0.015 },
-    { name:'Mars',    scale:1, spIdx:7, dwell:10, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Mars')?.mesh.position.clone(),    r:()=>0.011 },
-    { name:'Jupiter', scale:1, spIdx:7, dwell:13, vMult:7,   getPos:()=>planetMeshes.find(p=>p.data.name==='Jupiter')?.mesh.position.clone(), r:()=>0.055 },
-    { name:'Saturn',  scale:1, spIdx:7, dwell:14, vMult:7,   getPos:()=>planetMeshes.find(p=>p.data.name==='Saturn')?.mesh.position.clone(),  r:()=>0.055 },
-    { name:'Uranus',  scale:1, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Uranus')?.mesh.position.clone(),  r:()=>0.028 },
-    { name:'Neptune', scale:1, spIdx:7, dwell:10, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Neptune')?.mesh.position.clone(), r:()=>0.026 },
-    // ── Stellar Neighbors ──
-    { name:'Alpha Centauri', scale:2, spIdx:8, dwell:11, vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Alpha Centauri')?.position.clone(), r:()=>0.09 },
-    { name:'Sirius',         scale:2, spIdx:8, dwell:10, vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Sirius')?.position.clone(),         r:()=>0.10 },
-    { name:'Vega',           scale:2, spIdx:8, dwell:9,  vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Vega')?.position.clone(),           r:()=>0.08 },
-    { name:'Betelgeuse',     scale:2, spIdx:8, dwell:12, vMult:3, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Betelgeuse')?.position.clone(),     r:()=>0.18 },
-    { name:'Rigel',          scale:2, spIdx:8, dwell:9,  vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Rigel')?.position.clone(),          r:()=>0.12 },
-    // ── Cosmic ──
-    { name:'Andromeda Galaxy', scale:4, spIdx:9, dwell:16, vMult:1.2, getPos:()=>raDecToVec3(10.684,41.268,2.5e6*63241), r:()=>8e8 },
+    // ── Solar System (scale 0) ──
+    { name:'Sun',     scale:0, spIdx:7, dwell:11, vMult:4.5, getPos:()=>new THREE.Vector3(0,0,0),         r:()=>SUN_RADIUS_VIS },
+    { name:'Mercury', scale:0, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Mercury')?.mesh.position.clone(), r:()=>0.008 },
+    { name:'Venus',   scale:0, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Venus')?.mesh.position.clone(),   r:()=>0.014 },
+    { name:'Earth',   scale:0, spIdx:7, dwell:12, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Earth')?.mesh.position.clone(),   r:()=>0.015 },
+    { name:'Mars',    scale:0, spIdx:7, dwell:10, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Mars')?.mesh.position.clone(),    r:()=>0.011 },
+    { name:'Jupiter', scale:0, spIdx:7, dwell:13, vMult:7,   getPos:()=>planetMeshes.find(p=>p.data.name==='Jupiter')?.mesh.position.clone(), r:()=>0.055 },
+    { name:'Saturn',  scale:0, spIdx:7, dwell:14, vMult:7,   getPos:()=>planetMeshes.find(p=>p.data.name==='Saturn')?.mesh.position.clone(),  r:()=>0.055 },
+    { name:'Uranus',  scale:0, spIdx:7, dwell:9,  vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Uranus')?.mesh.position.clone(),  r:()=>0.028 },
+    { name:'Neptune', scale:0, spIdx:7, dwell:10, vMult:10,  getPos:()=>planetMeshes.find(p=>p.data.name==='Neptune')?.mesh.position.clone(), r:()=>0.026 },
+    // ── Stellar Neighbors (scale 1) ──
+    { name:'Alpha Centauri', scale:1, spIdx:8, dwell:11, vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Alpha Centauri')?.position.clone(), r:()=>0.09 },
+    { name:'Sirius',         scale:1, spIdx:8, dwell:10, vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Sirius')?.position.clone(),         r:()=>0.10 },
+    { name:'Vega',           scale:1, spIdx:8, dwell:9,  vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Vega')?.position.clone(),           r:()=>0.08 },
+    { name:'Betelgeuse',     scale:1, spIdx:8, dwell:12, vMult:3, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Betelgeuse')?.position.clone(),     r:()=>0.18 },
+    { name:'Rigel',          scale:1, spIdx:8, dwell:9,  vMult:4, getPos:()=>namedStarMeshes.find(m=>m.userData.name==='Rigel')?.position.clone(),          r:()=>0.12 },
+    // ── Cosmic (scale 3) ──
+    { name:'Andromeda Galaxy', scale:3, spIdx:9, dwell:16, vMult:1.2, getPos:()=>raDecToVec3(10.684,41.268,2.5e6*63241), r:()=>8e8 },
   ];
   return _exploreItinerary;
 }
@@ -1239,7 +1239,7 @@ function getLocalMatches(q) {
     })),
     ...STAR_DATA.map(s => ({
       name: s.name, distLY: s.dist, typeLabel: 'Star',
-      mesh: namedStarMeshes.find(m => m.userData.name === s.name), scaleLevel: 2
+      mesh: namedStarMeshes.find(m => m.userData.name === s.name), scaleLevel: 1
     })),
     ...searchableObjects.map(o => ({ ...o, scaleLevel: o.typeLabel === 'Planet' ? 1 : 2 }))
   ];
@@ -1653,7 +1653,7 @@ let speedLevel = 10; // logarithmic
 const MIN_SPEED_LEVEL = 0;
 const MAX_SPEED_LEVEL = 40;
 
-let currentScale = 1; // index into SCALE_LEVELS
+let currentScale = 0; // index into SCALE_LEVELS (0=Solar System)
 let simTime = 2026.0;
 let timeRateIndex = 2;
 const TIME_RATES = [0, 0.1, 1, 10, 100, 1000, 10000];
@@ -1916,26 +1916,25 @@ function goToNearest() {
 let _scaleTransition = null; // { from, to, progress, duration, fromNear, fromFar, fromFog, toNear, toFar, toFog, fromSpeed, toSpeed, targetPos }
 
 const _SCALE_PARAMS = [
-  { near: 0.001, far: 100, fog: 0.05, speed: 5, pos: [0, 0.5, 1.5] },          // 0: Atomic
-  { near: 0.0001, far: 5000, fog: 0.0008, speed: 10, pos: null },                // 1: Solar System
-  { near: 0.1, far: 5000000, fog: 0.0000001, speed: 25, pos: [0, 10000, 30000] }, // 2: Stellar
-  { near: 100, far: 5e9, fog: 0, speed: 32, pos: [0, 1e7, 3e7] },               // 3: Galactic
-  { near: 1e6, far: 1e14, fog: 0, speed: 38, pos: [0, 1e11, 3e11] }             // 4: Cosmic
+  { near: 0.0001, far: 5000, fog: 0.0008, speed: 10, pos: null },                // 0: Solar System
+  { near: 0.1, far: 5000000, fog: 0.0000001, speed: 25, pos: [0, 10000, 30000] }, // 1: Stellar
+  { near: 100, far: 5e9, fog: 0, speed: 32, pos: [0, 1e7, 3e7] },               // 2: Galactic
+  { near: 1e6, far: 1e14, fog: 0, speed: 38, pos: [0, 1e11, 3e11] }             // 3: Cosmic
 ];
 
 function _setScaleVisibility(level) {
-  sunGroup.visible = level <= 1;
-  planetMeshes.forEach(p => p.mesh.visible = level <= 1);
-  orbitLines.forEach(l => l.visible = level <= 1);
-  atomGroup.visible = level === 0;
-  namedStarMeshes.forEach(m => m.visible = level === 2);
-  liveStarMeshes.forEach(m => m.visible = level === 2);
-  exoplanetMarkers.forEach(m => m.visible = level === 2);
-  deepSkyMeshes.forEach(m => m.visible = level === 3);
-  galaxyGroup.visible = level === 3;
-  galaxyCatalogMeshes.forEach(m => m.visible = level === 4);
-  cosmicGroup.visible = level === 4;
-  lightSphere.visible = level === 1;
+  sunGroup.visible = level <= 0;
+  planetMeshes.forEach(p => p.mesh.visible = level <= 0);
+  orbitLines.forEach(l => l.visible = level <= 0);
+  atomGroup.visible = false; // atomic scale removed
+  namedStarMeshes.forEach(m => m.visible = level === 1);
+  liveStarMeshes.forEach(m => m.visible = level === 1);
+  exoplanetMarkers.forEach(m => m.visible = level === 1);
+  deepSkyMeshes.forEach(m => m.visible = level === 2);
+  galaxyGroup.visible = level === 2;
+  galaxyCatalogMeshes.forEach(m => m.visible = level === 3);
+  cosmicGroup.visible = level === 3;
+  lightSphere.visible = level === 0;
   _bgRefObjects.forEach(o => { o.marker.visible = level === o.scale; });
 }
 
@@ -1943,8 +1942,8 @@ function applyScale() {
   const level = currentScale;
 
   // Lazy-load catalogs
-  if (level === 2) loadGaiaStars();
-  if (level === 4) loadNearbyGalaxies();
+  if (level === 1) loadGaiaStars();
+  if (level === 3) loadNearbyGalaxies();
 
   const params = _SCALE_PARAMS[level];
   const prevParams = _scaleTransition ? _SCALE_PARAMS[_scaleTransition.from] : null;
@@ -1995,7 +1994,7 @@ function _updateScaleTransition(dt) {
 
   // Smooth camera position move (if target specified)
   if (tr.targetPos) {
-    camera.position.lerp(tr.targetPos, Math.min(1, dt * 2.5));
+    camera.position.lerp(tr.targetPos, Math.min(1, dt * 1.2));
   }
 
   if (t >= 1) {
@@ -2166,7 +2165,7 @@ function _updateTicker(dt) {
 }
 
 // ═══════════════════════════════════════════════
-//  MISSION REPORT
+//  ASTRO REPORT
 // ═══════════════════════════════════════════════
 function generateMissionReport() {
   const nearest = _nearestBody;
@@ -2443,69 +2442,50 @@ document.getElementById('splash-launches-btn').addEventListener('click', (e) => 
 });
 
 // ═══════════════════════════════════════════════
-//  LAUNCH SIMULATOR  (dual-comparison mode)
+//  LAUNCH SIMULATOR  (Starship-focused)
 // ═══════════════════════════════════════════════
 
-// Research-accurate rocket specifications
-// thrust: sea-level thrust in kN, mass: liftoff mass in kg, fuel: propellant mass in kg
-// stages: number of stages, isp: sea-level specific impulse (s)
-// payloadLEO: max payload to LEO in kg, twr: thrust-to-weight ratio at liftoff
-// burnTime1: first stage burn time (s), burnTime2: upper stage burn time (s)
-const PROVIDER_ROCKETS = {
-  'SpaceX': [
-    { name: 'Falcon 9',     thrust: 7607,  mass: 549054, fuel: 418700, stages: 2, isp: 282, payloadLEO: 22800,  twr: 1.41, burnTime1: 162, burnTime2: 397 },
-    { name: 'Falcon Heavy', thrust: 22819, mass: 1420788, fuel: 1155700, stages: 2, isp: 282, payloadLEO: 63800,  twr: 1.64, burnTime1: 154, burnTime2: 397 },
-    { name: 'Starship',     thrust: 74400, mass: 5000000, fuel: 4600000, stages: 2, isp: 327, payloadLEO: 150000, twr: 1.52, burnTime1: 170, burnTime2: 360 },
-  ],
-  'NASA': [
-    { name: 'SLS Block 1',  thrust: 39144, mass: 2608000, fuel: 2100000, stages: 2, isp: 269, payloadLEO: 95000,  twr: 1.53, burnTime1: 126, burnTime2: 480 },
-    { name: 'Saturn V',     thrust: 34020, mass: 2970000, fuel: 2160000, stages: 3, isp: 263, payloadLEO: 140000, twr: 1.17, burnTime1: 168, burnTime2: 360 },
-    { name: 'Space Shuttle', thrust: 30160, mass: 2040000, fuel: 1570000, stages: 2, isp: 266, payloadLEO: 27500,  twr: 1.51, burnTime1: 124, burnTime2: 510 },
-  ],
-  'Blue Origin': [
-    { name: 'New Glenn',    thrust: 17100, mass: 590000, fuel: 450000, stages: 2, isp: 320, payloadLEO: 45000,  twr: 1.49, burnTime1: 180, burnTime2: 330 },
-    { name: 'New Shepard',  thrust: 490,   mass: 75000,  fuel: 55000,  stages: 1, isp: 255, payloadLEO: 0,      twr: 0.67, burnTime1: 110, burnTime2: 0 },
-  ],
-  'ESA': [
-    { name: 'Ariane 6 (A64)', thrust: 8000, mass: 530000, fuel: 400000, stages: 2, isp: 278, payloadLEO: 21650, twr: 1.54, burnTime1: 140, burnTime2: 600 },
-    { name: 'Vega-C',       thrust: 3015, mass: 210000, fuel: 183000, stages: 4, isp: 280, payloadLEO: 2300,   twr: 1.46, burnTime1: 130, burnTime2: 90 },
-  ],
-  'ISRO': [
-    { name: 'LVM3 (GSLV Mk III)', thrust: 6847, mass: 640000, fuel: 515000, stages: 3, isp: 274, payloadLEO: 10000, twr: 1.09, burnTime1: 128, burnTime2: 300 },
-    { name: 'PSLV',         thrust: 4860, mass: 320000, fuel: 262000, stages: 4, isp: 269, payloadLEO: 3800,  twr: 1.55, burnTime1: 105, burnTime2: 83 },
-  ]
+// SpaceX Starship / Super Heavy — real specifications
+const STARSHIP = {
+  booster: {
+    height: 71,
+    diameter: 9,
+    dryMass: 200000,
+    propMass: 3400000,
+    raptorThrust: 2256,
+    defaultEngines: 33,
+    isp_sl: 327,
+    isp_vac: 356,
+    burnTime: 170,
+  },
+  ship: {
+    height: 50,
+    diameter: 9,
+    dryMass: 100000,
+    propMass: 1200000,
+    raptorSL: 3,
+    raptorVac: 3,
+    thrustSL: 2256,
+    thrustVac: 2490,
+    isp_sl: 327,
+    isp_vac: 380,
+    burnTime: 360,
+  },
+  totalHeight: 121,
 };
 
 const SIM_SITES = {
-  KSC:    { lat: 28.57, lon: -80.65, name: 'Kennedy Space Center' },
-  CCSFS:  { lat: 28.50, lon: -80.58, name: 'Cape Canaveral' },
-  Boca:   { lat: 25.99, lon: -97.15, name: 'Starbase, TX' },
-  Vandy:  { lat: 34.63, lon: -120.63, name: 'Vandenberg SFB' },
-  Kourou: { lat: 5.23, lon: -52.77, name: 'Kourou, Fr. Guiana' }
+  Boca:  { lat: 25.99, lon: -97.15, name: 'Starbase, TX' },
+  KSC:   { lat: 28.57, lon: -80.65, name: 'Kennedy Space Center' },
 };
 
-// ── SimInstance factory ──────────────────────────
-function _createSimInstance(prefix) {
-  return {
-    prefix,
-    renderer: null, scene: null, cam: null,
-    rocket: null, exhaust: null, earth: null,
-    trajectoryLine: null,
-    provider: prefix === 'a' ? 'SpaceX' : 'NASA',
-    rocketName: '',
-    t: 0, alt: 0, vel: 0, accel: 0, fuel: 100, stage: 1,
-    running: false, completed: false,
-    orbitTime: 0, maxG: 0, maxVel: 0, fuelAtOrbit: 0,
-    lastT: 0,
-    _msgMaxQ: false, _msgSonic: false, _msgFairing: false
-  };
-}
+const DEST_ALTS = { LEO: 200, GTO: 35786, Moon: 384400, Mars: 2250000 };
 
-// ── Module-level state ───────────────────────────
+// ── Sim state ────────────────────────────────────
 let _simActive = false;
-let _simA = null, _simB = null;
-let _masterLastT = 0;
-let _simWinner = null;
+let _simLastT = 0;
+let _simState = null;   // holds physics + 3D refs
+let _simCountdown = -1; // countdown seconds remaining (-1 = not counting)
 
 // ── Helpers ──────────────────────────────────────
 function _getSimVal(groupId) {
@@ -2523,262 +2503,360 @@ function _rotateEarthToSite(earth, siteKey) {
   earth.rotation.x = latRad;
 }
 
-function _getRocketData(providerName, rocketName) {
-  const rockets = PROVIDER_ROCKETS[providerName] || PROVIDER_ROCKETS['SpaceX'];
-  const found = rockets.find(function(r) { return r.name === rocketName; });
-  return found || rockets[0];
-}
 
-// ── Rocket option buttons per side ───────────────
-function _updateRocketOptions(prefix, providerName) {
-  const inst = prefix === 'a' ? _simA : _simB;
-  if (inst) inst.provider = providerName;
+// ── _updateSpecs: recompute vehicle specs from slider values ──
+function _updateSpecs() {
+  var payloadT = parseInt(document.getElementById('sim-payload').value, 10);
+  var nBoosterEngines = parseInt(document.getElementById('sim-engines').value, 10);
+  var nShipEngines = parseInt(document.getElementById('sim-ship-engines').value, 10);
+  var nSL = Math.ceil(nShipEngines / 2);
+  var nVac = nShipEngines - nSL;
 
-  const container = document.getElementById('sim-' + prefix + '-rocket');
-  if (!container) return;
-  const rockets = PROVIDER_ROCKETS[providerName] || PROVIDER_ROCKETS['SpaceX'];
-  container.innerHTML = '';
+  // Update slider display values
+  var payloadValEl = document.getElementById('sim-payload-val');
+  if (payloadValEl) payloadValEl.textContent = payloadT + ' t';
+  var engValEl = document.getElementById('sim-engines-val');
+  if (engValEl) engValEl.textContent = nBoosterEngines + ' engines';
+  var shipEngValEl = document.getElementById('sim-ship-engines-val');
+  if (shipEngValEl) shipEngValEl.textContent = nShipEngines + ' engines (' + nSL + ' sea-level + ' + nVac + ' vacuum)';
 
-  rockets.forEach(function(rocket, idx) {
-    const btn = document.createElement('button');
-    btn.className = 'sim-opt-btn' + (idx === 0 ? ' active' : '');
-    btn.dataset.val = rocket.name;
-    btn.textContent = rocket.name;
-    btn.addEventListener('click', function() {
-      container.querySelectorAll('.sim-opt-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      if (inst) {
-        inst.rocketName = btn.dataset.val;
-        // Update label
-        const labelEl = document.getElementById('sim-label-' + prefix);
-        if (labelEl) labelEl.textContent = btn.dataset.val;
-        // Rebuild rocket model if viewer is active
-        if (inst.scene && inst.rocket) {
-          inst.scene.remove(inst.rocket);
-          inst.rocket = buildRocket(btn.dataset.val);
-          inst.rocket.position.set(0, 0.22, 0);
-          inst.scene.add(inst.rocket);
-        }
-      }
-    });
-    container.appendChild(btn);
-  });
+  // Compute specs
+  var boosterThrust = nBoosterEngines * STARSHIP.booster.raptorThrust;
+  var shipThrustSL = nSL * STARSHIP.ship.thrustSL;
+  var shipThrustVac = nVac * STARSHIP.ship.thrustVac;
+  var shipThrust = shipThrustSL + shipThrustVac;
 
-  // Auto-select first rocket
-  const firstName = rockets[0].name;
-  if (inst) {
-    inst.rocketName = firstName;
-    const labelEl = document.getElementById('sim-label-' + prefix);
-    if (labelEl) labelEl.textContent = firstName;
+  var payloadKg = payloadT * 1000;
+  var liftoffMass = STARSHIP.booster.dryMass + STARSHIP.booster.propMass
+                  + STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg;
+  var liftoffMassT = liftoffMass / 1000;
+  var twr = (boosterThrust * 1000) / (liftoffMass * 9.81);
+
+  // Delta-V (Tsiolkovsky): stage 1 + stage 2
+  var g0 = 9.81;
+  var m0_b = liftoffMass;
+  var mf_b = liftoffMass - STARSHIP.booster.propMass;
+  var dv1 = STARSHIP.booster.isp_sl * g0 * Math.log(m0_b / mf_b);
+  var m0_s = STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg;
+  var mf_s = STARSHIP.ship.dryMass + payloadKg;
+  var avgIsp_s = (nSL * STARSHIP.ship.isp_sl + nVac * STARSHIP.ship.isp_vac) / nShipEngines;
+  var dv2 = avgIsp_s * g0 * Math.log(m0_s / mf_s);
+  var totalDV = (dv1 + dv2) / 1000; // km/s
+
+  // Update spec grid
+  var specsEl = document.getElementById('sim-specs');
+  if (specsEl) {
+    var specs = specsEl.querySelectorAll('.sim-spec-val');
+    if (specs.length >= 6) {
+      specs[0].textContent = STARSHIP.totalHeight + ' m';
+      specs[1].textContent = liftoffMassT.toLocaleString(undefined, {maximumFractionDigits:0}) + ' t';
+      specs[2].textContent = boosterThrust.toLocaleString() + ' kN';
+      specs[3].textContent = shipThrust.toLocaleString() + ' kN';
+      specs[4].textContent = twr.toFixed(2);
+      specs[5].textContent = '~' + totalDV.toFixed(1) + ' km/s';
+    }
   }
 }
 
-// ── Init 3D viewer for one instance ──────────────
-function _initSimViewerForInstance(inst) {
-  if (inst.renderer) return;
-  const canvas = document.getElementById('sim-canvas-' + inst.prefix);
+// ── Build detailed Starship 3D model ─────────────
+function _buildStarship(simScene) {
+  var group = new THREE.Group();
+
+  // ── Super Heavy Booster ──
+  var boosterGroup = new THREE.Group();
+  boosterGroup.name = 'booster';
+
+  // Main booster body — silver cylinder
+  var boosterGeo = new THREE.CylinderGeometry(0.18, 0.20, 1.42, 24, 1);
+  var boosterMat = new THREE.MeshStandardMaterial({ color: 0xc8c8c8, roughness: 0.35, metalness: 0.6 });
+  var boosterBody = new THREE.Mesh(boosterGeo, boosterMat);
+  boosterBody.position.y = 0.71;
+  boosterGroup.add(boosterBody);
+
+  // Engine skirt (wider at bottom)
+  var skirtGeo = new THREE.CylinderGeometry(0.20, 0.22, 0.12, 24, 1);
+  var skirtMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.5, metalness: 0.4 });
+  var skirt = new THREE.Mesh(skirtGeo, skirtMat);
+  skirt.position.y = 0.06;
+  boosterGroup.add(skirt);
+
+  // Engine bells at bottom (many small cones)
+  var engineGeo = new THREE.ConeGeometry(0.012, 0.06, 8);
+  var engineMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.3, metalness: 0.8 });
+  for (var ei = 0; ei < 33; ei++) {
+    var angle = (ei / 33) * Math.PI * 2;
+    var ring = ei < 13 ? 0.06 : (ei < 23 ? 0.12 : 0.17);
+    var eng = new THREE.Mesh(engineGeo, engineMat);
+    eng.position.set(Math.cos(angle) * ring, -0.03, Math.sin(angle) * ring);
+    eng.rotation.x = Math.PI;
+    boosterGroup.add(eng);
+  }
+
+  // Grid fins (4)
+  var finGeo = new THREE.BoxGeometry(0.14, 0.08, 0.01);
+  var finMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.4, metalness: 0.7 });
+  for (var fi = 0; fi < 4; fi++) {
+    var fin = new THREE.Mesh(finGeo, finMat);
+    var fAngle = (fi / 4) * Math.PI * 2;
+    fin.position.set(Math.cos(fAngle) * 0.22, 1.35, Math.sin(fAngle) * 0.22);
+    fin.rotation.y = fAngle;
+    boosterGroup.add(fin);
+  }
+
+  // Hot-stage ring at top of booster
+  var ringGeo = new THREE.CylinderGeometry(0.20, 0.19, 0.04, 24, 1);
+  var ringMat = new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.5, metalness: 0.5 });
+  var hotRing = new THREE.Mesh(ringGeo, ringMat);
+  hotRing.position.y = 1.44;
+  boosterGroup.add(hotRing);
+
+  group.add(boosterGroup);
+
+  // ── Starship (Ship / upper stage) ──
+  var shipGroup = new THREE.Group();
+  shipGroup.name = 'ship';
+
+  // Ship body cylinder
+  var shipBodyGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.80, 24, 1);
+  var shipBodyMat = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, roughness: 0.3, metalness: 0.5 });
+  var shipBody = new THREE.Mesh(shipBodyGeo, shipBodyMat);
+  shipBody.position.y = 1.86;
+  shipGroup.add(shipBody);
+
+  // Heat shield side (dark tiles) — half cylinder
+  var tileGeo = new THREE.CylinderGeometry(0.183, 0.183, 0.80, 12, 1, false, 0, Math.PI);
+  var tileMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9, metalness: 0.1 });
+  var tiles = new THREE.Mesh(tileGeo, tileMat);
+  tiles.position.y = 1.86;
+  tiles.rotation.y = Math.PI;
+  shipGroup.add(tiles);
+
+  // Nose cone
+  var noseGeo = new THREE.ConeGeometry(0.18, 0.40, 24, 1);
+  var noseMat = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, roughness: 0.3, metalness: 0.5 });
+  var nose = new THREE.Mesh(noseGeo, noseMat);
+  nose.position.y = 2.46;
+  shipGroup.add(nose);
+
+  // Forward flaps (2)
+  var flapGeo = new THREE.BoxGeometry(0.16, 0.22, 0.008);
+  var flapMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.7, metalness: 0.3 });
+  for (var ffi = 0; ffi < 2; ffi++) {
+    var flap = new THREE.Mesh(flapGeo, flapMat);
+    var ffAngle = ffi === 0 ? 0 : Math.PI;
+    flap.position.set(Math.cos(ffAngle) * 0.19, 2.15, Math.sin(ffAngle) * 0.19);
+    flap.rotation.y = ffAngle;
+    shipGroup.add(flap);
+  }
+
+  // Aft flaps (2)
+  for (var afi = 0; afi < 2; afi++) {
+    var aflap = new THREE.Mesh(flapGeo, flapMat);
+    var afAngle = afi === 0 ? Math.PI / 2 : -Math.PI / 2;
+    aflap.position.set(Math.cos(afAngle) * 0.19, 1.55, Math.sin(afAngle) * 0.19);
+    aflap.rotation.y = afAngle;
+    shipGroup.add(aflap);
+  }
+
+  // Ship engines (smaller)
+  var sEngGeo = new THREE.ConeGeometry(0.015, 0.07, 8);
+  for (var si = 0; si < 6; si++) {
+    var sAngle = (si / 6) * Math.PI * 2;
+    var sEng = new THREE.Mesh(sEngGeo, engineMat);
+    sEng.position.set(Math.cos(sAngle) * 0.08, 1.42, Math.sin(sAngle) * 0.08);
+    sEng.rotation.x = Math.PI;
+    shipGroup.add(sEng);
+  }
+
+  shipGroup.position.y = 0; // stacked on top of booster
+  group.add(shipGroup);
+
+  return group;
+}
+
+// ── Init the 3D viewer ───────────────────────────
+function _initSimViewer() {
+  if (_simState && _simState.renderer) return;
+  var canvas = document.getElementById('sim-canvas-a');
   if (!canvas) return;
-  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  var w = canvas.offsetWidth, h = canvas.offsetHeight;
   if (!w || !h) return;
 
-  inst.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
-  inst.renderer.setSize(w, h);
-  inst.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  inst.renderer.setClearColor(0x010208, 1);
+  var simRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  simRenderer.setSize(w, h);
+  simRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  simRenderer.setClearColor(0x010208, 1);
 
-  inst.scene = new THREE.Scene();
-  inst.cam = new THREE.PerspectiveCamera(50, w / h, 0.01, 2000);
-  inst.cam.position.set(3, 2, 5);
-  inst.cam.lookAt(0, 1, 0);
+  var simScene = new THREE.Scene();
+  var simCam = new THREE.PerspectiveCamera(50, w / h, 0.01, 2000);
+  simCam.position.set(3, 2, 5);
+  simCam.lookAt(0, 1.5, 0);
 
-  // Earth — high detail with continent texture
-  const eGeo = new THREE.SphereGeometry(2, 64, 64);
-  const eTex = _mkTex(512, 256, _pTexFns.Earth);
-  inst.earth = new THREE.Mesh(eGeo, new THREE.MeshStandardMaterial({ map: eTex, roughness: 0.7, metalness: 0.05 }));
-  inst.earth.position.set(0, -1.8, 0);
-  inst.scene.add(inst.earth);
+  // Earth
+  var eGeo = new THREE.SphereGeometry(2, 64, 64);
+  var eTex = _mkTex(512, 256, _pTexFns.Earth);
+  var earth = new THREE.Mesh(eGeo, new THREE.MeshStandardMaterial({ map: eTex, roughness: 0.7, metalness: 0.05 }));
+  earth.position.set(0, -1.8, 0);
+  simScene.add(earth);
 
-  // Cloud layer over Earth
-  const cloudTex = _mkTex(256, 128, (u,v,nx,ny,nz) => {
-    const n1 = _sfbm(nx*4+10,ny*4+10,nz*4+10,4);
-    const n2 = _sfbm(nx*8+20,ny*8,nz*8+20,3)*0.3;
-    const cloud = Math.max(0, n1+n2-0.42)*2.5;
-    const c = Math.min(255,(cloud*255)|0);
+  // Cloud layer
+  var cloudTex = _mkTex(256, 128, function(u,v,nx,ny,nz) {
+    var n1 = _sfbm(nx*4+10,ny*4+10,nz*4+10,4);
+    var n2 = _sfbm(nx*8+20,ny*8,nz*8+20,3)*0.3;
+    var cloud = Math.max(0, n1+n2-0.42)*2.5;
+    var c = Math.min(255,(cloud*255)|0);
     return [c,c,c];
   });
-  const cloudMesh = new THREE.Mesh(
+  var cloudMesh = new THREE.Mesh(
     new THREE.SphereGeometry(2.03, 48, 48),
     new THREE.MeshStandardMaterial({ map: cloudTex, transparent: true, opacity: 0.4, depthWrite: false, roughness: 1, metalness: 0 })
   );
   cloudMesh.userData._cloudSpin = true;
-  inst.earth.add(cloudMesh);
-
-  // Rotate earth to selected launch site
-  const selectedSite = _getSimVal('sim-site') || 'KSC';
-  _rotateEarthToSite(inst.earth, selectedSite);
+  earth.add(cloudMesh);
 
   // Atmosphere glow
-  const aCanvas = document.createElement('canvas');
-  aCanvas.width = 128;
-  aCanvas.height = 128;
-  const aCtx = aCanvas.getContext('2d');
-  const aGrad = aCtx.createRadialGradient(64, 64, 28, 64, 64, 64);
+  var aCanvas = document.createElement('canvas');
+  aCanvas.width = 128; aCanvas.height = 128;
+  var aCtx = aCanvas.getContext('2d');
+  var aGrad = aCtx.createRadialGradient(64, 64, 28, 64, 64, 64);
   aGrad.addColorStop(0, 'rgba(100,160,255,0)');
   aGrad.addColorStop(0.6, 'rgba(100,160,255,0)');
   aGrad.addColorStop(0.8, 'rgba(100,160,255,0.15)');
   aGrad.addColorStop(1, 'rgba(100,160,255,0)');
   aCtx.fillStyle = aGrad;
   aCtx.fillRect(0, 0, 128, 128);
-  const atmo = new THREE.Sprite(new THREE.SpriteMaterial({
+  var atmo = new THREE.Sprite(new THREE.SpriteMaterial({
     map: new THREE.CanvasTexture(aCanvas),
     blending: THREE.AdditiveBlending,
     transparent: true,
     depthWrite: false
   }));
   atmo.scale.setScalar(6);
-  inst.earth.add(atmo);
+  earth.add(atmo);
 
-  // Rocket
-  const rName = inst.rocketName || 'Falcon 9';
-  inst.rocket = buildRocket(rName);
-  inst.rocket.position.set(0, 0.22, 0);
-  inst.scene.add(inst.rocket);
+  // Rotate to launch site
+  var selectedSite = _getSimVal('sim-site') || 'Boca';
+  _rotateEarthToSite(earth, selectedSite);
 
-  // Multi-layer exhaust system
-  // Layer 1: core flame (bright yellow-white)
-  const ex1Geo = new THREE.BufferGeometry();
-  const ex1Pos = new Float32Array(20 * 3);
+  // Build Starship
+  var rocket = _buildStarship(simScene);
+  rocket.position.set(0, 0.22, 0);
+  simScene.add(rocket);
+
+  // Multi-layer exhaust
+  // Core flame (bright yellow-white)
+  var ex1Geo = new THREE.BufferGeometry();
+  var ex1Pos = new Float32Array(30 * 3);
   ex1Geo.setAttribute('position', new THREE.BufferAttribute(ex1Pos, 3));
-  const ex1 = new THREE.Points(ex1Geo, new THREE.PointsMaterial({
-    color: 0xffeedd, size: 0.008, transparent: true, opacity: 0.95,
+  var ex1 = new THREE.Points(ex1Geo, new THREE.PointsMaterial({
+    color: 0xffeedd, size: 0.01, transparent: true, opacity: 0.95,
     blending: THREE.AdditiveBlending, depthWrite: false
   }));
-
-  // Layer 2: outer flame (orange)
-  const ex2Geo = new THREE.BufferGeometry();
-  const ex2Pos = new Float32Array(40 * 3);
+  // Outer flame (orange)
+  var ex2Geo = new THREE.BufferGeometry();
+  var ex2Pos = new Float32Array(60 * 3);
   ex2Geo.setAttribute('position', new THREE.BufferAttribute(ex2Pos, 3));
-  const ex2 = new THREE.Points(ex2Geo, new THREE.PointsMaterial({
-    color: 0xff6600, size: 0.016, transparent: true, opacity: 0.7,
+  var ex2 = new THREE.Points(ex2Geo, new THREE.PointsMaterial({
+    color: 0xff6600, size: 0.02, transparent: true, opacity: 0.7,
     blending: THREE.AdditiveBlending, depthWrite: false
   }));
-
-  // Layer 3: smoke plume (only in atmosphere)
-  const ex3Geo = new THREE.BufferGeometry();
-  const ex3Pos = new Float32Array(30 * 3);
+  // Smoke plume
+  var ex3Geo = new THREE.BufferGeometry();
+  var ex3Pos = new Float32Array(40 * 3);
   ex3Geo.setAttribute('position', new THREE.BufferAttribute(ex3Pos, 3));
-  const ex3 = new THREE.Points(ex3Geo, new THREE.PointsMaterial({
-    color: 0x886644, size: 0.028, transparent: true, opacity: 0.3,
+  var ex3 = new THREE.Points(ex3Geo, new THREE.PointsMaterial({
+    color: 0x886644, size: 0.035, transparent: true, opacity: 0.3,
     blending: THREE.NormalBlending, depthWrite: false
   }));
 
-  inst.exhaust = {
-    grp: new THREE.Group(),
+  var exhaustGrp = new THREE.Group();
+  exhaustGrp.add(ex1, ex2, ex3);
+  exhaustGrp.visible = false;
+  simScene.add(exhaustGrp);
+
+  var exhaust = {
+    grp: exhaustGrp,
     layers: [
-      { pts: ex1, pos: ex1Pos, n: 20, spread: 0.015, lenMin: 0.02, lenMax: 0.08 },
-      { pts: ex2, pos: ex2Pos, n: 40, spread: 0.04, lenMin: 0.04, lenMax: 0.18 },
-      { pts: ex3, pos: ex3Pos, n: 30, spread: 0.06, lenMin: 0.08, lenMax: 0.30 }
+      { pts: ex1, pos: ex1Pos, n: 30, spread: 0.02, lenMin: 0.03, lenMax: 0.12 },
+      { pts: ex2, pos: ex2Pos, n: 60, spread: 0.05, lenMin: 0.05, lenMax: 0.25 },
+      { pts: ex3, pos: ex3Pos, n: 40, spread: 0.07, lenMin: 0.10, lenMax: 0.40 }
     ]
   };
-  inst.exhaust.grp.add(ex1, ex2, ex3);
-  inst.exhaust.grp.visible = false;
-  inst.scene.add(inst.exhaust.grp);
 
-  // Trajectory line (initially hidden)
-  inst.trajectoryLine = null;
+  // Trajectory arc
+  var trajStart = new THREE.Vector3(0, 0.22, 0);
+  var trajControl = new THREE.Vector3(0.3, 2.5, 0);
+  var trajEnd = new THREE.Vector3(2.0, 4.5, 0);
+  var trajCurve = new THREE.QuadraticBezierCurve3(trajStart, trajControl, trajEnd);
+  var trajPts = trajCurve.getPoints(64);
+  var trajGeo = new THREE.BufferGeometry().setFromPoints(trajPts);
+  var trajLine = new THREE.Line(trajGeo, new THREE.LineBasicMaterial({
+    color: 0x00eeff, transparent: true, opacity: 0.15,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  trajLine.visible = false;
+  simScene.add(trajLine);
 
   // Lights
-  inst.scene.add(new THREE.AmbientLight(0x223344, 0.4));
-  const sunL = new THREE.DirectionalLight(0xfff0dd, 1.2);
-  sunL.position.set(5, 3, 2);
-  inst.scene.add(sunL);
+  simScene.add(new THREE.AmbientLight(0x223344, 0.4));
+  var simSunL = new THREE.DirectionalLight(0xfff0dd, 1.2);
+  simSunL.position.set(5, 3, 2);
+  simScene.add(simSunL);
 
   // Stars
-  const sPos = new Float32Array(500 * 3);
-  for (let i = 0; i < 500; i++) {
-    const th = Math.random() * Math.PI * 2;
-    const ph = Math.acos(2 * Math.random() - 1);
-    const r = 400 + Math.random() * 600;
+  var sPos = new Float32Array(600 * 3);
+  for (var i = 0; i < 600; i++) {
+    var th = Math.random() * Math.PI * 2;
+    var ph = Math.acos(2 * Math.random() - 1);
+    var r = 400 + Math.random() * 600;
     sPos[i * 3]     = r * Math.sin(ph) * Math.cos(th);
     sPos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
     sPos[i * 3 + 2] = r * Math.cos(ph);
   }
-  const sGeo = new THREE.BufferGeometry();
+  var sGeo = new THREE.BufferGeometry();
   sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
-  inst.scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({
+  simScene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({
     color: 0xffffff, size: 1.5, sizeAttenuation: true
   })));
+
+  _simState = {
+    renderer: simRenderer,
+    scene: simScene,
+    cam: simCam,
+    rocket: rocket,
+    boosterGroup: rocket.children.find(function(c) { return c.name === 'booster'; }),
+    shipGroup: rocket.children.find(function(c) { return c.name === 'ship'; }),
+    separatedBooster: null,
+    exhaust: exhaust,
+    earth: earth,
+    trajLine: trajLine,
+    // Physics state
+    t: 0,
+    alt: 0,          // km
+    vel: 0,          // m/s
+    accel: 0,        // g
+    downrange: 0,    // km
+    boosterFuel: 100,
+    shipFuel: 100,
+    stage: 'booster', // 'booster', 'hot-stage', 'ship', 'coast', 'orbit'
+    pitchAngle: 90,  // degrees from horizontal (90 = vertical)
+    running: false,
+    completed: false,
+    countdownActive: false,
+    countdownT: 10,
+    // Milestone flags
+    _msgMaxQ: false,
+    _msgMECO: false,
+    _msgSep: false,
+    _msgBoostback: false,
+    _msgFairing: false,
+    _msgSECO: false,
+  };
 }
 
-// ── Trajectory line helpers ──────────────────────
-function _createTrajectoryLine(inst) {
-  _removeTrajectoryLine(inst);
-  if (!inst.scene || !inst.rocket) return;
-  const startY = 0.22;
-  const endY = 4.0;
-  const endX = 1.5;
-  const start = new THREE.Vector3(0, startY, 0);
-  const control = new THREE.Vector3(0.2, (startY + endY) * 0.6, 0);
-  const end = new THREE.Vector3(endX, endY, 0);
-  const curve = new THREE.QuadraticBezierCurve3(start, control, end);
-  const points = curve.getPoints(64);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({
-    color: 0x00eeff, transparent: true, opacity: 0.25,
-    blending: THREE.AdditiveBlending, depthWrite: false
-  });
-  inst.trajectoryLine = new THREE.Line(geometry, material);
-  inst.scene.add(inst.trajectoryLine);
-}
-
-function _removeTrajectoryLine(inst) {
-  if (inst.trajectoryLine && inst.scene) {
-    inst.scene.remove(inst.trajectoryLine);
-    if (inst.trajectoryLine.geometry) inst.trajectoryLine.geometry.dispose();
-    if (inst.trajectoryLine.material) inst.trajectoryLine.material.dispose();
-    inst.trajectoryLine = null;
-  }
-}
-
-// ── Telemetry update for one side ────────────────
-function _updateTelemetry(inst) {
-  const p = inst.prefix;
-  const mins = Math.floor(inst.t / 60);
-  const secs = Math.floor(inst.t % 60);
-  const timeEl = document.getElementById('sim-' + p + '-time');
-  if (timeEl) timeEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-
-  const altEl = document.getElementById('sim-' + p + '-alt');
-  if (altEl) altEl.textContent = inst.alt < 1000 ? inst.alt.toFixed(1) + ' km' : (inst.alt / 1000).toFixed(2) + ' Mm';
-
-  const velEl = document.getElementById('sim-' + p + '-vel');
-  if (velEl) velEl.textContent = inst.vel < 1000 ? inst.vel.toFixed(0) + ' m/s' : (inst.vel / 1000).toFixed(2) + ' km/s';
-
-  const accelEl = document.getElementById('sim-' + p + '-accel');
-  if (accelEl) accelEl.textContent = inst.accel.toFixed(1) + ' g';
-
-  const fuelEl = document.getElementById('sim-' + p + '-fuel');
-  if (fuelEl) fuelEl.textContent = Math.max(0, inst.fuel).toFixed(0) + '%';
-
-  const statusEl = document.getElementById('sim-' + p + '-status');
-  if (statusEl) {
-    if (!inst.running && !inst.completed) {
-      statusEl.textContent = 'READY';
-    } else if (inst.completed) {
-      statusEl.textContent = 'ORBIT INSERTION';
-    } else if (inst.fuel <= 0) {
-      statusEl.textContent = 'MECO \u2014 COASTING';
-    } else if (inst.stage === 1) {
-      statusEl.textContent = 'POWERED FLIGHT';
-    } else {
-      statusEl.textContent = 'STAGE ' + inst.stage + ' BURN';
-    }
-  }
-}
-
-// ── Ticker message for one side ──────────────────
-function _showTicker(inst, text) {
-  const el = document.getElementById('sim-ticker-' + inst.prefix + '-text');
+// ── Show ticker message ──────────────────────────
+function _showTicker(text) {
+  var el = document.getElementById('sim-ticker-text');
   if (!el) return;
   el.classList.remove('typing');
   el.textContent = text;
@@ -2786,146 +2864,395 @@ function _showTicker(inst, text) {
   el.classList.add('typing');
 }
 
-// ── Physics step for one instance ────────────────
-function _stepInstance(inst, dt) {
-  if (!inst.running || inst.completed) return;
+// ── Update telemetry display ─────────────────────
+function _updateTelemetry() {
+  if (!_simState) return;
+  var s = _simState;
 
-  inst.t += dt;
-  const rData = _getRocketData(inst.provider, inst.rocketName);
+  var mins = Math.floor(Math.abs(s.t) / 60);
+  var secs = Math.floor(Math.abs(s.t) % 60);
+  var prefix = s.t < 0 ? 'T-' : 'T+';
 
-  // Realistic physics using burn times and TWR
-  const totalBurnTime = (rData.burnTime1 || 150) + (rData.burnTime2 || 300);
-  const stage1End = rData.burnTime1 || 150;
-  const fuelBurnRate = 100 / totalBurnTime; // % per second
+  var timeEl = document.getElementById('sim-t-time');
+  if (timeEl) timeEl.textContent = prefix + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
 
-  if (inst.fuel > 0) {
-    // Current TWR decreases as fuel burns (vehicle gets lighter = higher TWR)
-    const fuelFrac = inst.fuel / 100;
-    const currentMass = rData.mass * (0.08 + 0.92 * fuelFrac); // dry mass ~8% + fuel
-    const thrustN = rData.thrust * 1000; // kN to N
-    const currentTWR = thrustN / (currentMass * 9.81);
+  var altEl = document.getElementById('sim-t-alt');
+  if (altEl) altEl.textContent = s.alt < 1000 ? s.alt.toFixed(1) + ' km' : (s.alt / 1000).toFixed(2) + ' Mm';
 
-    // Gravity loss and drag (simplified)
-    const gravityLoss = inst.alt < 100 ? 9.81 : 9.81 * (6371 / (6371 + inst.alt)) ** 2;
-    const dragLoss = inst.alt < 50 ? Math.min(inst.vel * 0.0008, 2.5) : 0; // drag in atmosphere
+  var velEl = document.getElementById('sim-t-vel');
+  if (velEl) velEl.textContent = s.vel < 1000 ? s.vel.toFixed(0) + ' m/s' : (s.vel / 1000).toFixed(2) + ' km/s';
 
-    inst.accel = Math.max(0, currentTWR - 1) + (inst.alt > 20 ? 0.3 : 0); // net acceleration in g
-    inst.vel += (inst.accel * 9.81 - dragLoss) * dt;
-    inst.fuel -= fuelBurnRate * dt;
-    if (inst.fuel <= 0) { inst.fuel = 0; inst.accel = 0; }
-  } else {
-    inst.accel = 0;
-    inst.vel = Math.max(0, inst.vel - 0.3 * dt); // gentle coast deceleration
+  var accelEl = document.getElementById('sim-t-accel');
+  if (accelEl) accelEl.textContent = s.accel.toFixed(1) + ' g';
+
+  var downrangeEl = document.getElementById('sim-t-downrange');
+  if (downrangeEl) downrangeEl.textContent = s.downrange.toFixed(1) + ' km';
+
+  var bfuelEl = document.getElementById('sim-t-bfuel');
+  if (bfuelEl) bfuelEl.textContent = Math.max(0, s.boosterFuel).toFixed(0) + '%';
+
+  var sfuelEl = document.getElementById('sim-t-sfuel');
+  if (sfuelEl) sfuelEl.textContent = Math.max(0, s.shipFuel).toFixed(0) + '%';
+
+  var stageEl = document.getElementById('sim-t-stage');
+  if (stageEl) stageEl.textContent = s.stage.toUpperCase();
+
+  var statusEl = document.getElementById('sim-t-status');
+  if (statusEl) {
+    if (s.countdownActive) statusEl.textContent = 'COUNTDOWN';
+    else if (!s.running && !s.completed) statusEl.textContent = 'PRE-LAUNCH';
+    else if (s.completed) statusEl.textContent = 'ORBIT ACHIEVED';
+    else if (s.stage === 'booster') statusEl.textContent = 'POWERED FLIGHT';
+    else if (s.stage === 'hot-stage') statusEl.textContent = 'HOT STAGING';
+    else if (s.stage === 'ship') statusEl.textContent = 'SHIP BURN';
+    else if (s.stage === 'coast') statusEl.textContent = 'COASTING';
+    else statusEl.textContent = s.stage.toUpperCase();
   }
-  inst.alt += inst.vel * dt / 1000;
+}
 
-  // Track peak values
-  if (inst.accel > inst.maxG) inst.maxG = inst.accel;
-  if (inst.vel > inst.maxVel) inst.maxVel = inst.vel;
+// ── Start launch (with countdown) ────────────────
+function _startLaunch() {
+  if (!_simState) return;
+  if (_simState.running || _simState.countdownActive) return;
 
-  // Stage separation at end of stage 1 burn
-  if (inst.stage === 1 && inst.t > stage1End * 0.95 && inst.fuel < (100 - fuelBurnRate * stage1End * 1.05)) {
-    inst.stage = 2;
-    _showTicker(inst, 'MECO — Stage separation confirmed. Stage 2 ignition.');
+  // Reset state
+  _simState.t = -10;
+  _simState.alt = 0;
+  _simState.vel = 0;
+  _simState.accel = 0;
+  _simState.downrange = 0;
+  _simState.boosterFuel = 100;
+  _simState.shipFuel = 100;
+  _simState.stage = 'booster';
+  _simState.pitchAngle = 90;
+  _simState.running = false;
+  _simState.completed = false;
+  _simState.countdownActive = true;
+  _simState.countdownT = 10;
+  _simState._msgMaxQ = false;
+  _simState._msgMECO = false;
+  _simState._msgSep = false;
+  _simState._msgBoostback = false;
+  _simState._msgFairing = false;
+  _simState._msgSECO = false;
+
+  // Reset 3D positions
+  if (_simState.rocket) {
+    _simState.rocket.position.set(0, 0.22, 0);
+    _simState.rocket.rotation.z = 0;
+  }
+  // If booster was separated, remove it and rebuild rocket
+  if (_simState.separatedBooster) {
+    _simState.scene.remove(_simState.separatedBooster);
+    _simState.separatedBooster = null;
+  }
+  if (_simState.scene && _simState.rocket) {
+    _simState.scene.remove(_simState.rocket);
+  }
+  var newRocket = _buildStarship(_simState.scene);
+  newRocket.position.set(0, 0.22, 0);
+  _simState.scene.add(newRocket);
+  _simState.rocket = newRocket;
+  _simState.boosterGroup = newRocket.children.find(function(c) { return c.name === 'booster'; });
+  _simState.shipGroup = newRocket.children.find(function(c) { return c.name === 'ship'; });
+
+  if (_simState.exhaust) _simState.exhaust.grp.visible = false;
+  if (_simState.trajLine) { _simState.trajLine.visible = true; _simState.trajLine.material.opacity = 0.15; }
+  if (_simState.cam) {
+    _simState.cam.position.set(3, 2, 5);
+    _simState.cam.lookAt(0, 1.5, 0);
   }
 
-  // Milestone messages
-  if (!inst._msgMaxQ && inst.alt > 11 && inst.alt < 15) { inst._msgMaxQ = true; _showTicker(inst, 'Max Q — maximum dynamic pressure.'); }
-  if (!inst._msgSonic && inst.vel > 343 && inst.vel < 400) { inst._msgSonic = true; _showTicker(inst, 'Vehicle is supersonic.'); }
-  if (!inst._msgFairing && inst.alt > 100 && inst.alt < 120) { inst._msgFairing = true; _showTicker(inst, 'Fairing separation — payload exposed to space.'); }
+  var statusEl = document.getElementById('sim-status');
+  if (statusEl) statusEl.textContent = 'COUNTDOWN';
 
-  // Move rocket up
-  if (inst.rocket) {
-    const rY = 0.22 + Math.min(inst.alt / 50, 3.5);
-    inst.rocket.position.y = rY;
-    inst.rocket.rotation.z = Math.min(inst.t * 0.008, 0.35);
+  var launchBtn = document.getElementById('sim-launch-btn');
+  if (launchBtn) { launchBtn.textContent = 'COUNTDOWN...'; launchBtn.classList.add('counting'); }
+
+  _showTicker('T-10... LAUNCH SEQUENCE INITIATED');
+}
+
+// ── Physics + Rendering loop ─────────────────────
+function _simAnimate(now) {
+  if (!_simActive) return;
+  if (!_simState) return;
+  requestAnimationFrame(_simAnimate);
+
+  var dt = Math.min((now - _simLastT) / 1000, 0.1);
+  _simLastT = now;
+
+  var s = _simState;
+
+  // ── Countdown phase ──
+  if (s.countdownActive) {
+    s.t += dt;
+    if (s.t < 0) {
+      var countSec = Math.ceil(Math.abs(s.t));
+      if (countSec !== s.countdownT) {
+        s.countdownT = countSec;
+        if (countSec <= 10 && countSec > 0) {
+          _showTicker('T-' + countSec + '...');
+        }
+      }
+      _updateTelemetry();
+      if (s.renderer && s.scene && s.cam) s.renderer.render(s.scene, s.cam);
+      return;
+    }
+    // Countdown just hit zero — ignition!
+    s.countdownActive = false;
+    s.running = true;
+    s.t = 0;
+    if (s.exhaust) s.exhaust.grp.visible = true;
+    _showTicker('LIFTOFF! All ' + document.getElementById('sim-engines').value + ' Raptors at full thrust.');
+    var statusEl2 = document.getElementById('sim-status');
+    if (statusEl2) statusEl2.textContent = 'LAUNCH IN PROGRESS';
+  }
+
+  if (!s.running && !s.completed) {
+    if (s.renderer && s.scene && s.cam) s.renderer.render(s.scene, s.cam);
+    return;
+  }
+
+  // ── Physics step ──
+  if (s.running && !s.completed) {
+    s.t += dt;
+
+    var g0 = 9.81;
+    var nBoosterEng = parseInt(document.getElementById('sim-engines').value, 10);
+    var nShipEng = parseInt(document.getElementById('sim-ship-engines').value, 10);
+    var nSL = Math.ceil(nShipEng / 2);
+    var nVac = nShipEng - nSL;
+    var payloadKg = parseInt(document.getElementById('sim-payload').value, 10) * 1000;
+
+    // Gravity at altitude
+    var gAlt = g0 * Math.pow(6371 / (6371 + s.alt), 2);
+
+    // Atmospheric drag: proportional to v^2, decreasing with altitude (scale height ~8.5km)
+    var rho = Math.exp(-s.alt / 8.5);
+    var dragAccel = 0.5 * rho * s.vel * s.vel * 0.000003;
+    dragAccel = Math.min(dragAccel, 5 * g0);
+
+    // Gravity turn: pitch transitions from 90 to ~10 degrees over first 200s
+    if (s.t < 200) {
+      s.pitchAngle = 90 - (80 * Math.min(s.t / 200, 1) * Math.min(s.t / 200, 1));
+    } else {
+      s.pitchAngle = Math.max(5, 10 - (s.t - 200) * 0.01);
+    }
+    var pitchRad = s.pitchAngle * Math.PI / 180;
+
+    var thrustAccel = 0;
+
+    if (s.stage === 'booster') {
+      // Booster phase
+      var boosterThrustN = nBoosterEng * STARSHIP.booster.raptorThrust * 1000;
+      var boosterMassFlow = boosterThrustN / (STARSHIP.booster.isp_sl * g0);
+      var boosterFuelUsed = boosterMassFlow * dt;
+      var boosterFuelFrac = s.boosterFuel / 100;
+      var currentBoosterProp = STARSHIP.booster.propMass * boosterFuelFrac;
+      var totalMass = STARSHIP.booster.dryMass + currentBoosterProp
+                    + STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg;
+      thrustAccel = boosterThrustN / totalMass;
+
+      s.boosterFuel -= (boosterFuelUsed / STARSHIP.booster.propMass) * 100;
+      if (s.boosterFuel <= 0) s.boosterFuel = 0;
+
+      // MECO at ~170s or fuel exhaustion
+      if (s.t >= STARSHIP.booster.burnTime || s.boosterFuel <= 0) {
+        if (!s._msgMECO) {
+          s._msgMECO = true;
+          s.stage = 'hot-stage';
+          _showTicker('Booster MECO. Hot-staging initiated.');
+        }
+      }
+    } else if (s.stage === 'hot-stage') {
+      // Brief hot-staging phase (~3s) — both stages briefly fire
+      var hsBoosterThrust = nBoosterEng * STARSHIP.booster.raptorThrust * 1000 * 0.3;
+      var hsShipThrust = (nSL * STARSHIP.ship.thrustSL + nVac * STARSHIP.ship.thrustVac) * 1000;
+      var hsTotalMass = STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg + STARSHIP.booster.dryMass;
+      thrustAccel = (hsBoosterThrust + hsShipThrust) / hsTotalMass;
+
+      // Ship fuel starts burning
+      var hsShipMassFlow = hsShipThrust / (STARSHIP.ship.isp_vac * g0);
+      s.shipFuel -= (hsShipMassFlow * dt / STARSHIP.ship.propMass) * 100;
+
+      if (!s._msgSep && s.t >= STARSHIP.booster.burnTime + 3) {
+        s._msgSep = true;
+        s.stage = 'ship';
+        _showTicker('Stage separation. Ship engines at full thrust.');
+
+        // Separate booster visually
+        if (s.boosterGroup && s.rocket) {
+          s.rocket.remove(s.boosterGroup);
+          s.separatedBooster = s.boosterGroup.clone();
+          s.separatedBooster.position.copy(s.rocket.position);
+          s.separatedBooster.position.y -= 0.1;
+          s.scene.add(s.separatedBooster);
+        }
+      }
+      if (!s._msgBoostback && s.t >= STARSHIP.booster.burnTime + 5) {
+        s._msgBoostback = true;
+        _showTicker('Booster beginning boostback burn.');
+      }
+    } else if (s.stage === 'ship') {
+      // Ship phase — thrust transitions from SL to Vac with altitude
+      var vacFrac = Math.min(1, s.alt / 100);
+      var slFrac = 1 - vacFrac;
+      var shipThrustSLN = nSL * STARSHIP.ship.thrustSL * 1000 * slFrac;
+      var shipThrustVacN = nVac * STARSHIP.ship.thrustVac * 1000;
+      var slInVac = nSL * STARSHIP.ship.thrustSL * 1000 * vacFrac * 0.85;
+      var totalShipThrust = shipThrustSLN + slInVac + shipThrustVacN;
+
+      var avgIsp = (nSL * STARSHIP.ship.isp_sl * (1 - vacFrac * 0.15) + nVac * STARSHIP.ship.isp_vac) / nShipEng;
+      var shipMassFlow = totalShipThrust / (avgIsp * g0);
+      var shipPropFrac = s.shipFuel / 100;
+      var currentShipProp = STARSHIP.ship.propMass * shipPropFrac;
+      var shipTotalMass = STARSHIP.ship.dryMass + currentShipProp + payloadKg;
+      thrustAccel = totalShipThrust / shipTotalMass;
+
+      s.shipFuel -= (shipMassFlow * dt / STARSHIP.ship.propMass) * 100;
+      if (s.shipFuel <= 0) {
+        s.shipFuel = 0;
+        s.stage = 'coast';
+        if (!s._msgSECO) {
+          s._msgSECO = true;
+          _showTicker('SECO. Orbit insertion confirmed!');
+        }
+      }
+    } else if (s.stage === 'coast') {
+      thrustAccel = 0;
+    }
+
+    // Net acceleration along flight path
+    var netAccelAlongPath = thrustAccel - gAlt * Math.sin(pitchRad) - dragAccel;
+    s.accel = thrustAccel / g0;
+    s.vel += netAccelAlongPath * dt;
+    if (s.vel < 0) s.vel = 0;
+
+    // Altitude and downrange
+    s.alt += (s.vel * Math.sin(pitchRad) * dt) / 1000;
+    s.downrange += (s.vel * Math.cos(pitchRad) * dt) / 1000;
+
+    // Milestone messages
+    if (!s._msgMaxQ && s.t > 55 && s.t < 65) {
+      s._msgMaxQ = true;
+      _showTicker('Max Q \u2014 maximum dynamic pressure');
+    }
+    if (!s._msgFairing && s.alt > 100 && s.alt < 200 && s.stage === 'ship' && s.t > 250) {
+      s._msgFairing = true;
+      _showTicker('Fairing jettison');
+    }
+
+    // Target altitude check for orbit
+    var destVal = _getSimVal('sim-dest') || 'LEO';
+    var targetAlt = DEST_ALTS[destVal] || 200;
+    var orbitalVel = Math.sqrt(g0 * Math.pow(6371, 2) / (6371 + targetAlt)) * 1000;
+    if (s.alt >= targetAlt || (s.alt > 180 && s.vel >= orbitalVel * 0.95)) {
+      s.completed = true;
+      s.running = false;
+      if (!s._msgSECO) {
+        s._msgSECO = true;
+        _showTicker('SECO. Orbit insertion confirmed!');
+      }
+      var simStatusEl = document.getElementById('sim-status');
+      if (simStatusEl) simStatusEl.textContent = 'ORBIT ACHIEVED';
+      var launchBtn2 = document.getElementById('sim-launch-btn');
+      if (launchBtn2) { launchBtn2.textContent = 'INITIATE LAUNCH SEQUENCE'; launchBtn2.classList.remove('counting'); }
+    }
+
+    // Auto-complete if coasting with sufficient altitude + velocity
+    if (s.stage === 'coast' && s.alt > 150 && s.vel > 6000) {
+      s.completed = true;
+      s.running = false;
+      var simStatusEl3 = document.getElementById('sim-status');
+      if (simStatusEl3) simStatusEl3.textContent = 'ORBIT ACHIEVED';
+      var launchBtn3 = document.getElementById('sim-launch-btn');
+      if (launchBtn3) { launchBtn3.textContent = 'INITIATE LAUNCH SEQUENCE'; launchBtn3.classList.remove('counting'); }
+    }
+  }
+
+  // ── 3D updates ──
+  if (s.rocket && s.running) {
+    var rY = 0.22 + Math.min(s.alt / 50, 4.0);
+    s.rocket.position.y = rY;
+    s.rocket.position.x = Math.min(s.downrange / 200, 1.5);
+    s.rocket.rotation.z = Math.min(s.t * 0.006, (90 - s.pitchAngle) * Math.PI / 180);
+  }
+
+  // Separated booster drifts down
+  if (s.separatedBooster) {
+    s.separatedBooster.position.y -= dt * 0.3;
+    s.separatedBooster.position.x -= dt * 0.05;
+    if (s.separatedBooster.position.y < -2) {
+      s.scene.remove(s.separatedBooster);
+      s.separatedBooster = null;
+    }
   }
 
   // Trajectory line opacity
-  if (inst.trajectoryLine) {
-    inst.trajectoryLine.material.opacity = 0.15 + Math.min(inst.alt / 400, 0.5);
+  if (s.trajLine) {
+    s.trajLine.material.opacity = 0.1 + Math.min(s.alt / 400, 0.5);
   }
 
-  // Multi-layer exhaust
-  if (inst.exhaust && inst.fuel > 0) {
-    const rPos = inst.rocket ? inst.rocket.position : { x: 0, y: 0.22, z: 0 };
-    inst.exhaust.layers.forEach(function(layer) {
-      const p = layer.pos;
-      for (let i = 0; i < layer.n; i++) {
-        const age = Math.random();
-        p[i * 3]     = rPos.x + (Math.random() - 0.5) * layer.spread;
-        p[i * 3 + 1] = rPos.y - 0.09 - age * (layer.lenMin + Math.random() * (layer.lenMax - layer.lenMin));
-        p[i * 3 + 2] = rPos.z + (Math.random() - 0.5) * layer.spread;
+  // Exhaust particles
+  if (s.exhaust && s.running && (s.stage === 'booster' || s.stage === 'hot-stage' || s.stage === 'ship')) {
+    var rPos = s.rocket ? s.rocket.position : { x: 0, y: 0.22, z: 0 };
+    s.exhaust.grp.visible = true;
+    s.exhaust.layers.forEach(function(layer) {
+      var p = layer.pos;
+      for (var pi = 0; pi < layer.n; pi++) {
+        var age = Math.random();
+        p[pi * 3]     = rPos.x + (Math.random() - 0.5) * layer.spread;
+        p[pi * 3 + 1] = rPos.y - 0.09 - age * (layer.lenMin + Math.random() * (layer.lenMax - layer.lenMin));
+        p[pi * 3 + 2] = rPos.z + (Math.random() - 0.5) * layer.spread;
       }
       layer.pts.geometry.attributes.position.needsUpdate = true;
     });
-    inst.exhaust.layers[2].pts.visible = inst.alt < 80;
-  }
-  if (inst.exhaust && inst.fuel <= 0) inst.exhaust.grp.visible = false;
-
-  // Camera follows rocket
-  if (inst.cam && inst.rocket) {
-    const tY = inst.rocket.position.y;
-    inst.cam.position.y += (tY + 0.5 - inst.cam.position.y) * dt * 2;
-    inst.cam.lookAt(inst.rocket.position.x, tY, inst.rocket.position.z);
+    // Hide smoke above atmosphere
+    s.exhaust.layers[2].pts.visible = s.alt < 80;
+  } else if (s.exhaust && (s.stage === 'coast' || s.completed)) {
+    s.exhaust.grp.visible = false;
   }
 
-  _updateTelemetry(inst);
-
-  // Ticker events
-  if (inst.t > 0.5 && inst.t < 1.0) {
-    _showTicker(inst, 'LIFTOFF! We have liftoff!');
-  } else if (inst.t > 10 && inst.t < 10.5) {
-    _showTicker(inst, 'Vehicle is supersonic.');
-  } else if (inst.t > 60 && inst.t < 60.5) {
-    _showTicker(inst, 'Max Q \u2014 maximum dynamic pressure.');
+  // Camera follows rocket, transitions to wider view at separation
+  if (s.cam && s.rocket) {
+    var tY = s.rocket.position.y;
+    var tX = s.rocket.position.x;
+    var camDist = 3 + Math.min(s.alt / 100, 4);
+    s.cam.position.x += (tX + camDist - s.cam.position.x) * dt * 1.5;
+    s.cam.position.y += (tY + 0.5 - s.cam.position.y) * dt * 2;
+    s.cam.lookAt(tX, tY, 0);
   }
 
-  // Orbit achieved
-  if (inst.alt > 400) {
-    inst.completed = true;
-    inst.running = false;
-    inst.orbitTime = inst.t;
-    inst.fuelAtOrbit = Math.max(0, inst.fuel);
-    _showTicker(inst, 'Orbit insertion confirmed!');
+  // Rotate earth slowly
+  if (s.earth) {
+    s.earth.rotation.y += dt * 0.02;
+    s.earth.children.forEach(function(c) { if (c.userData._cloudSpin) c.rotation.y += dt * 0.05; });
+  }
 
-    // Winner badge
-    if (!_simWinner) {
-      _simWinner = inst.prefix;
-      const badge = document.getElementById('sim-winner-' + inst.prefix);
-      if (badge) badge.classList.add('show-' + inst.prefix);
-    }
+  _updateTelemetry();
+
+  // Render
+  if (s.renderer && s.scene && s.cam) {
+    s.renderer.render(s.scene, s.cam);
   }
 }
 
 // ── Open / Close ─────────────────────────────────
 function openLaunchSim() {
   _simActive = true;
-  _simWinner = null;
-
-  _simA = _createSimInstance('a');
-  _simB = _createSimInstance('b');
-
   document.getElementById('launch-sim').classList.add('open');
+  var statusEl = document.getElementById('sim-status');
+  if (statusEl) statusEl.textContent = 'CONFIGURE LAUNCH';
 
-  const statusEl = document.getElementById('sim-status');
-  if (statusEl) statusEl.textContent = 'CONFIGURE DUAL LAUNCH';
+  // Initialize specs from current slider values
+  _updateSpecs();
 
-  // Populate initial rocket options
-  _updateRocketOptions('a', _simA.provider);
-  _updateRocketOptions('b', _simB.provider);
-
-  // Reset telemetry displays
-  _updateTelemetry(_simA);
-  _updateTelemetry(_simB);
-
-  // Init 3D viewers after DOM settles
+  // Init 3D viewer after DOM settles
   setTimeout(function() {
-    _initSimViewerForInstance(_simA);
-    _initSimViewerForInstance(_simB);
-    // Start the shared animation loop
+    _initSimViewer();
+    _updateTelemetry();
     requestAnimationFrame(function(t) {
-      _masterLastT = t;
+      _simLastT = t;
       _simAnimate(t);
     });
   }, 60);
@@ -2933,235 +3260,17 @@ function openLaunchSim() {
 
 function closeLaunchSim() {
   _simActive = false;
-
-  if (_simA) {
-    _removeTrajectoryLine(_simA);
-    if (_simA.renderer) { _simA.renderer.dispose(); }
+  if (_simState) {
+    if (_simState.renderer) _simState.renderer.dispose();
+    _simState = null;
   }
-  if (_simB) {
-    _removeTrajectoryLine(_simB);
-    if (_simB.renderer) { _simB.renderer.dispose(); }
-  }
-  _simA = null;
-  _simB = null;
-  _simWinner = null;
-
   document.getElementById('launch-sim').classList.remove('open');
   document.getElementById('splash').classList.remove('hidden');
-
-  // Hide results overlay if open
-  const resultsEl = document.getElementById('sim-results');
-  if (resultsEl) resultsEl.classList.remove('open');
-}
-
-// ── Start launch ─────────────────────────────────
-function _startLaunch() {
-  if (!_simA || !_simB) return;
-  if (_simA.running || _simB.running) return;
-
-  _simWinner = null;
-
-  // Remove winner badges
-  var badgeA = document.getElementById('sim-winner-a');
-  var badgeB = document.getElementById('sim-winner-b');
-  if (badgeA) badgeA.classList.remove('show-a');
-  if (badgeB) badgeB.classList.remove('show-b');
-
-  // Reset both instances
-  [_simA, _simB].forEach(function(inst) {
-    inst.t = 0; inst.alt = 0; inst.vel = 0; inst.accel = 0;
-    inst.fuel = 100; inst.stage = 1;
-    inst.running = true; inst.completed = false;
-    inst.orbitTime = 0; inst.maxG = 0; inst.maxVel = 0; inst.fuelAtOrbit = 0;
-
-    if (inst.rocket) inst.rocket.position.set(0, 0.22, 0);
-    if (inst.rocket) inst.rocket.rotation.z = 0;
-    if (inst.exhaust) inst.exhaust.grp.visible = true;
-    if (inst.cam) {
-      inst.cam.position.set(3, 2, 5);
-      inst.cam.lookAt(0, 1, 0);
-    }
-
-    _createTrajectoryLine(inst);
-    _showTicker(inst, 'All systems nominal. Go for launch.');
-  });
-
-  var statusEl = document.getElementById('sim-status');
-  if (statusEl) statusEl.textContent = 'DUAL LAUNCH IN PROGRESS';
-
-  var launchBtn = document.getElementById('sim-launch-btn');
-  if (launchBtn) {
-    launchBtn.textContent = 'LAUNCHING...';
-    launchBtn.classList.add('counting');
-  }
-}
-
-// ── Single rAF loop for both instances ───────────
-function _simAnimate(now) {
-  if (!_simActive) return;
-  if (!_simA && !_simB) return;
-  requestAnimationFrame(_simAnimate);
-
-  var dt = Math.min((now - _masterLastT) / 1000, 0.1);
-  _masterLastT = now;
-
-  // Step A
-  if (_simA && _simA.running) {
-    _stepInstance(_simA, dt);
-  }
-  // Step B
-  if (_simB && _simB.running) {
-    _stepInstance(_simB, dt);
-  }
-
-  // Rotate earths slowly
-  if (_simA && _simA.earth) { _simA.earth.rotation.y += dt * 0.02; _simA.earth.children.forEach(c => { if (c.userData._cloudSpin) c.rotation.y += dt * 0.05; }); }
-  if (_simB && _simB.earth) { _simB.earth.rotation.y += dt * 0.02; _simB.earth.children.forEach(c => { if (c.userData._cloudSpin) c.rotation.y += dt * 0.05; }); }
-
-  // Render
-  if (_simA && _simA.renderer && _simA.scene && _simA.cam) {
-    _simA.renderer.render(_simA.scene, _simA.cam);
-  }
-  if (_simB && _simB.renderer && _simB.scene && _simB.cam) {
-    _simB.renderer.render(_simB.scene, _simB.cam);
-  }
-
-  // Check if both done
-  _checkCompletion();
-}
-
-// ── Completion check and results ─────────────────
-function _checkCompletion() {
-  if (!_simA || !_simB) return;
-  if (!_simA.completed || !_simB.completed) return;
-
-  // Only fire once
-  if (_simA._resultShown) return;
-  _simA._resultShown = true;
-
-  var launchBtn = document.getElementById('sim-launch-btn');
-  if (launchBtn) {
-    launchBtn.textContent = 'INITIATE LAUNCH SEQUENCE';
-    launchBtn.classList.remove('counting');
-  }
-  var statusEl = document.getElementById('sim-status');
-  if (statusEl) statusEl.textContent = 'COMPARISON COMPLETE';
-
-  // Build results
-  var a = _simA, b = _simB;
-  var rDataA = _getRocketData(a.provider, a.rocketName);
-  var rDataB = _getRocketData(b.provider, b.rocketName);
-  var twrA = (rDataA.twr || (rDataA.thrust * 1000) / (rDataA.mass * 9.81)).toFixed(2);
-  var twrB = (rDataB.twr || (rDataB.thrust * 1000) / (rDataB.mass * 9.81)).toFixed(2);
-  var plA = rDataA.payloadLEO || 0;
-  var plB = rDataB.payloadLEO || 0;
-
-  function winClass(aVal, bVal, lowerWins) {
-    if (lowerWins) {
-      if (aVal < bVal) return ['win', ''];
-      if (bVal < aVal) return ['', 'win'];
-    } else {
-      if (aVal > bVal) return ['win', ''];
-      if (bVal > aVal) return ['', 'win'];
-    }
-    return ['', ''];
-  }
-
-  var timeW   = winClass(a.orbitTime, b.orbitTime, true);
-  var velW    = winClass(a.maxVel, b.maxVel, false);
-  var gW      = winClass(a.maxG, b.maxG, true);
-  var fuelW   = winClass(a.fuelAtOrbit, b.fuelAtOrbit, false);
-  var twrW    = winClass(parseFloat(twrA), parseFloat(twrB), false);
-  var plW     = winClass(plA, plB, false);
-
-  var aWins = 0, bWins = 0;
-  [timeW, velW, gW, fuelW, twrW, plW].forEach(function(w) {
-    if (w[0] === 'win') aWins++;
-    if (w[1] === 'win') bWins++;
-  });
-
-  var verdict = '';
-  if (aWins > bWins) {
-    verdict = a.rocketName + ' wins overall with ' + aWins + ' of 6 categories.';
-  } else if (bWins > aWins) {
-    verdict = b.rocketName + ' wins overall with ' + bWins + ' of 6 categories.';
-  } else {
-    verdict = 'It is a tie! Both rockets matched evenly across categories.';
-  }
-
-  var html = '<h3>Mission Results</h3>'
-    + '<table class="sim-results-table">'
-    + '<thead><tr><th>Metric</th><th>' + a.rocketName + '</th><th>' + b.rocketName + '</th></tr></thead>'
-    + '<tbody>'
-    + '<tr><td>Time to orbit</td>'
-    + '<td class="' + timeW[0] + '">' + a.orbitTime.toFixed(1) + 's</td>'
-    + '<td class="' + timeW[1] + '">' + b.orbitTime.toFixed(1) + 's</td></tr>'
-    + '<tr><td>Peak velocity</td>'
-    + '<td class="' + velW[0] + '">' + (a.maxVel / 1000).toFixed(2) + ' km/s</td>'
-    + '<td class="' + velW[1] + '">' + (b.maxVel / 1000).toFixed(2) + ' km/s</td></tr>'
-    + '<tr><td>Peak G-force</td>'
-    + '<td class="' + gW[0] + '">' + a.maxG.toFixed(1) + ' g</td>'
-    + '<td class="' + gW[1] + '">' + b.maxG.toFixed(1) + ' g</td></tr>'
-    + '<tr><td>Fuel remaining</td>'
-    + '<td class="' + fuelW[0] + '">' + a.fuelAtOrbit.toFixed(1) + '%</td>'
-    + '<td class="' + fuelW[1] + '">' + b.fuelAtOrbit.toFixed(1) + '%</td></tr>'
-    + '<tr><td>Thrust-to-weight</td>'
-    + '<td class="' + twrW[0] + '">' + twrA + '</td>'
-    + '<td class="' + twrW[1] + '">' + twrB + '</td></tr>'
-    + '<tr><td>Payload to LEO</td>'
-    + '<td class="' + plW[0] + '">' + (plA > 0 ? (plA/1000).toFixed(1) + ' t' : 'N/A') + '</td>'
-    + '<td class="' + plW[1] + '">' + (plB > 0 ? (plB/1000).toFixed(1) + ' t' : 'N/A') + '</td></tr>'
-    + '</tbody></table>'
-    + '<p class="sim-verdict">' + verdict + '</p>';
-
-  var resultsBody = document.getElementById('sim-results-body');
-  if (resultsBody) resultsBody.innerHTML = html;
-
-  var resultsEl = document.getElementById('sim-results');
-  if (resultsEl) resultsEl.classList.add('open');
 }
 
 // ── Event wiring ─────────────────────────────────
 
-// Provider buttons for side A
-var simProviderA = document.getElementById('sim-provider-a');
-if (simProviderA) {
-  simProviderA.addEventListener('click', function(e) {
-    var btn = e.target.closest('.sim-opt-btn');
-    if (!btn) return;
-    simProviderA.querySelectorAll('.sim-opt-btn').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    _updateRocketOptions('a', btn.dataset.val);
-    if (_simA && _simA.scene && _simA.rocket) {
-      var firstRocket = (PROVIDER_ROCKETS[btn.dataset.val] || PROVIDER_ROCKETS['SpaceX'])[0];
-      _simA.scene.remove(_simA.rocket);
-      _simA.rocket = buildRocket(firstRocket.name);
-      _simA.rocket.position.set(0, 0.22, 0);
-      _simA.scene.add(_simA.rocket);
-    }
-  });
-}
-
-// Provider buttons for side B
-var simProviderB = document.getElementById('sim-provider-b');
-if (simProviderB) {
-  simProviderB.addEventListener('click', function(e) {
-    var btn = e.target.closest('.sim-opt-btn');
-    if (!btn) return;
-    simProviderB.querySelectorAll('.sim-opt-btn').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    _updateRocketOptions('b', btn.dataset.val);
-    if (_simB && _simB.scene && _simB.rocket) {
-      var firstRocket = (PROVIDER_ROCKETS[btn.dataset.val] || PROVIDER_ROCKETS['SpaceX'])[0];
-      _simB.scene.remove(_simB.rocket);
-      _simB.rocket = buildRocket(firstRocket.name);
-      _simB.rocket.position.set(0, 0.22, 0);
-      _simB.scene.add(_simB.rocket);
-    }
-  });
-}
-
-// Shared option groups (destination, site)
+// Option button groups (destination, site)
 ['sim-dest', 'sim-site'].forEach(function(groupId) {
   var group = document.getElementById(groupId);
   if (!group) return;
@@ -3170,17 +3279,19 @@ if (simProviderB) {
     if (!btn) return;
     group.querySelectorAll('.sim-opt-btn').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
-    if (groupId === 'sim-site') {
-      if (_simA && _simA.earth) _rotateEarthToSite(_simA.earth, btn.dataset.val);
-      if (_simB && _simB.earth) _rotateEarthToSite(_simB.earth, btn.dataset.val);
+    if (groupId === 'sim-site' && _simState && _simState.earth) {
+      _rotateEarthToSite(_simState.earth, btn.dataset.val);
     }
+    _updateSpecs();
   });
 });
 
-// Sim inputs stop propagation
-document.querySelectorAll('.sim-input').forEach(function(inp) {
-  inp.addEventListener('keydown', function(e) { e.stopPropagation(); });
-  inp.addEventListener('touchstart', function(e) { e.stopPropagation(); });
+// Sliders
+['sim-payload', 'sim-engines', 'sim-ship-engines'].forEach(function(sliderId) {
+  var slider = document.getElementById(sliderId);
+  if (!slider) return;
+  slider.addEventListener('input', function() { _updateSpecs(); });
+  slider.addEventListener('touchstart', function(e) { e.stopPropagation(); });
 });
 
 // Main buttons
@@ -3192,30 +3303,17 @@ document.getElementById('splash-sim-btn').addEventListener('click', function(e) 
   openLaunchSim();
 });
 
-// Results close
-var simResultsClose = document.getElementById('sim-results-close');
-if (simResultsClose) {
-  simResultsClose.addEventListener('click', function() {
-    var resultsEl = document.getElementById('sim-results');
-    if (resultsEl) resultsEl.classList.remove('open');
-  });
-}
-
-// Resize handler - update both renderers
+// Resize handler
 window.addEventListener('resize', function() {
-  if (!_simActive) return;
-  ['a', 'b'].forEach(function(prefix) {
-    var inst = prefix === 'a' ? _simA : _simB;
-    if (!inst || !inst.renderer) return;
-    var canvas = document.getElementById('sim-canvas-' + prefix);
-    if (!canvas) return;
-    var w = canvas.offsetWidth, h = canvas.offsetHeight;
-    if (w && h) {
-      inst.renderer.setSize(w, h);
-      inst.cam.aspect = w / h;
-      inst.cam.updateProjectionMatrix();
-    }
-  });
+  if (!_simActive || !_simState || !_simState.renderer) return;
+  var canvas = document.getElementById('sim-canvas-a');
+  if (!canvas) return;
+  var w = canvas.offsetWidth, h = canvas.offsetHeight;
+  if (w && h) {
+    _simState.renderer.setSize(w, h);
+    _simState.cam.aspect = w / h;
+    _simState.cam.updateProjectionMatrix();
+  }
 });
 document.getElementById('hud-back-btn').addEventListener('click', () => {
   started = false;

@@ -30,12 +30,12 @@ function App() {
             </button>
             <button className="splash-btn" id="splash-launches-btn">
               <div className="splash-btn-icon">{'\uD83D\uDE80'}</div>
-              <div className="splash-btn-label">LAUNCH HISTORY</div>
+              <div className="splash-btn-label">LAUNCH HISTORY <span className="beta-tag">BETA</span></div>
               <div className="splash-btn-sub">Relive humanity{"'"}s greatest missions</div>
             </button>
             <button className="splash-btn" id="splash-sim-btn">
               <div className="splash-btn-icon">{'\u2622'}</div>
-              <div className="splash-btn-label">LAUNCH SIMULATOR</div>
+              <div className="splash-btn-label">LAUNCH SIMULATOR <span className="beta-tag">BETA</span></div>
               <div className="splash-btn-sub">Design and simulate your own mission</div>
             </button>
           </div>
@@ -86,7 +86,7 @@ function App() {
 
         <div className="hud-bl">
           <button className="lh-back-btn" id="hud-back-btn" style={{marginBottom:'8px',pointerEvents:'all'}}>{'\u2190'} BACK</button>
-          <button className="mission-report-btn" id="mission-report-btn" style={{pointerEvents:'all'}}>{'\u2263'} MISSION REPORT</button>
+          <button className="mission-report-btn" id="mission-report-btn" style={{pointerEvents:'all'}}>{'\u2263'} ASTRO REPORT</button>
           <div className="hud-panel controls-help" id="controls-help">
             <span>C</span> Show all controls
           </div>
@@ -228,13 +228,13 @@ function App() {
         </div>
       </div>
 
-      {/* Mission Report Overlay */}
+      {/* Astro Report Overlay */}
       <div id="mission-report" className="report-overlay">
         <div className="report-card">
           <button className="panel-close-btn" id="report-close-btn">{'\u2715'}</button>
           <div className="report-header">
             <div className="report-icon">{'\u2263'}</div>
-            <div className="report-title">MISSION REPORT</div>
+            <div className="report-title">ASTRO REPORT</div>
             <div className="report-target" id="report-target-name">---</div>
           </div>
           <div className="report-body" id="report-body"></div>
@@ -274,118 +274,83 @@ function App() {
       <div id="launch-sim" className="lh-overlay">
         <div className="lh-header">
           <button className="lh-back-btn" id="sim-back-btn">{'\u2190'} BACK</button>
-          <div className="lh-title">LAUNCH COMPARISON</div>
-          <div className="sim-status" id="sim-status"></div>
+          <div className="lh-title">STARSHIP LAUNCH SIMULATOR</div>
+          <div className="sim-status" id="sim-status">CONFIGURE LAUNCH</div>
         </div>
         <div className="sim-comparison-body">
           <div className="sim-config-panel" id="sim-config">
-
             <div className="sim-rocket-selector sim-selector-a">
-              <div className="sim-selector-label">ROCKET A</div>
-              <div className="sim-section">
-                <div className="sim-label">PROVIDER</div>
-                <div className="sim-options" id="sim-a-provider">
-                  <button className="sim-opt-btn active" data-val="SpaceX">SpaceX</button>
-                  <button className="sim-opt-btn" data-val="NASA">NASA</button>
-                  <button className="sim-opt-btn" data-val="Blue Origin">Blue Origin</button>
-                  <button className="sim-opt-btn" data-val="ESA">ESA</button>
-                  <button className="sim-opt-btn" data-val="ISRO">ISRO</button>
-                </div>
-              </div>
-              <div className="sim-section">
-                <div className="sim-label">ROCKET</div>
-                <div className="sim-options" id="sim-a-rocket"></div>
-              </div>
-            </div>
+              <div className="sim-selector-label">MISSION PROFILE</div>
 
-            <div className="sim-rocket-selector sim-selector-b">
-              <div className="sim-selector-label">ROCKET B</div>
               <div className="sim-section">
-                <div className="sim-label">PROVIDER</div>
-                <div className="sim-options" id="sim-b-provider">
-                  <button className="sim-opt-btn active" data-val="NASA">NASA</button>
-                  <button className="sim-opt-btn" data-val="SpaceX">SpaceX</button>
-                  <button className="sim-opt-btn" data-val="Blue Origin">Blue Origin</button>
-                  <button className="sim-opt-btn" data-val="ESA">ESA</button>
-                  <button className="sim-opt-btn" data-val="ISRO">ISRO</button>
-                </div>
+                <div className="sim-label">PAYLOAD MASS (tonnes)</div>
+                <input type="range" className="sim-slider" id="sim-payload" min="0" max="150" defaultValue="50" />
+                <div className="sim-slider-val" id="sim-payload-val">50 t</div>
               </div>
-              <div className="sim-section">
-                <div className="sim-label">ROCKET</div>
-                <div className="sim-options" id="sim-b-rocket"></div>
-              </div>
-            </div>
 
-            <div className="sim-shared-config">
-              <div className="sim-selector-label">MISSION PARAMETERS</div>
               <div className="sim-section">
                 <div className="sim-label">DESTINATION</div>
                 <div className="sim-options" id="sim-dest">
-                  <button className="sim-opt-btn active" data-val="LEO">Low Earth Orbit</button>
-                  <button className="sim-opt-btn" data-val="ISS">ISS</button>
-                  <button className="sim-opt-btn" data-val="GTO">Geostationary</button>
+                  <button className="sim-opt-btn active" data-val="LEO">LEO (200 km)</button>
+                  <button className="sim-opt-btn" data-val="GTO">GTO</button>
                   <button className="sim-opt-btn" data-val="Moon">Moon</button>
                   <button className="sim-opt-btn" data-val="Mars">Mars</button>
                 </div>
               </div>
+
               <div className="sim-section">
                 <div className="sim-label">LAUNCH SITE</div>
                 <div className="sim-options" id="sim-site">
-                  <button className="sim-opt-btn active" data-val="KSC">Kennedy Space Center</button>
-                  <button className="sim-opt-btn" data-val="CCSFS">Cape Canaveral</button>
-                  <button className="sim-opt-btn" data-val="Boca">Starbase, TX</button>
-                  <button className="sim-opt-btn" data-val="Vandy">Vandenberg</button>
-                  <button className="sim-opt-btn" data-val="Kourou">Kourou</button>
+                  <button className="sim-opt-btn active" data-val="Boca">Starbase, TX</button>
+                  <button className="sim-opt-btn" data-val="KSC">Kennedy Space Center</button>
                 </div>
               </div>
+
               <div className="sim-section">
-                <div className="sim-label">PAYLOAD MASS (kg)</div>
-                <input type="number" className="sim-input" id="sim-payload" defaultValue="5000" min="0" max="500000" />
+                <div className="sim-label">RAPTOR ENGINE COUNT (BOOSTER)</div>
+                <input type="range" className="sim-slider" id="sim-engines" min="20" max="33" defaultValue="33" />
+                <div className="sim-slider-val" id="sim-engines-val">33 engines</div>
+              </div>
+
+              <div className="sim-section">
+                <div className="sim-label">SHIP RAPTOR COUNT</div>
+                <input type="range" className="sim-slider" id="sim-ship-engines" min="3" max="6" defaultValue="6" />
+                <div className="sim-slider-val" id="sim-ship-engines-val">6 engines (3 sea-level + 3 vacuum)</div>
               </div>
             </div>
 
-            <button className="sim-launch-btn" id="sim-launch-btn">SIMULTANEOUS LAUNCH</button>
+            <div className="sim-shared-config">
+              <div className="sim-selector-label">VEHICLE SPECS (computed)</div>
+              <div className="sim-spec-grid" id="sim-specs">
+                <div className="sim-spec"><span className="sim-spec-label">Total Height</span><span className="sim-spec-val">121 m</span></div>
+                <div className="sim-spec"><span className="sim-spec-label">Liftoff Mass</span><span className="sim-spec-val">5,000 t</span></div>
+                <div className="sim-spec"><span className="sim-spec-label">Booster Thrust</span><span className="sim-spec-val">74,400 kN</span></div>
+                <div className="sim-spec"><span className="sim-spec-label">Ship Thrust</span><span className="sim-spec-val">14,700 kN</span></div>
+                <div className="sim-spec"><span className="sim-spec-label">Thrust-to-Weight</span><span className="sim-spec-val">1.52</span></div>
+                <div className="sim-spec"><span className="sim-spec-label">Delta-V Budget</span><span className="sim-spec-val">~9.5 km/s</span></div>
+              </div>
+            </div>
+
+            <button className="sim-launch-btn" id="sim-launch-btn">INITIATE LAUNCH SEQUENCE</button>
           </div>
 
           <div className="sim-dual-viewport">
-            <div className="sim-viewport-half" id="sim-viewport-a">
+            <div className="sim-viewport-half" id="sim-viewport-a" style={{flex:'1'}}>
               <canvas id="sim-canvas-a"></canvas>
-              <div className="sim-rocket-label sim-label-a" id="sim-label-a">ROCKET A</div>
+              <div className="sim-rocket-label sim-label-a" id="sim-label-a">STARSHIP / SUPER HEAVY</div>
               <div className="sim-telemetry" id="sim-telemetry-a">
-                <div className="sim-telem-row"><span className="sim-telem-label">T+</span><span className="sim-telem-val" id="sim-a-time">00:00</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">ALT</span><span className="sim-telem-val" id="sim-a-alt">0 km</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">VEL</span><span className="sim-telem-val" id="sim-a-vel">0 m/s</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">G</span><span className="sim-telem-val" id="sim-a-accel">0 g</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">FUEL</span><span className="sim-telem-val" id="sim-a-fuel">100%</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">STATUS</span><span className="sim-telem-val" id="sim-a-status">READY</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">T+</span><span className="sim-telem-val" id="sim-t-time">00:00</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">ALT</span><span className="sim-telem-val" id="sim-t-alt">0 km</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">VEL</span><span className="sim-telem-val" id="sim-t-vel">0 m/s</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">ACCEL</span><span className="sim-telem-val" id="sim-t-accel">0.0 g</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">DOWNRANGE</span><span className="sim-telem-val" id="sim-t-downrange">0 km</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">BOOSTER FUEL</span><span className="sim-telem-val" id="sim-t-bfuel">100%</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">SHIP FUEL</span><span className="sim-telem-val" id="sim-t-sfuel">100%</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">STAGE</span><span className="sim-telem-val" id="sim-t-stage">BOOSTER</span></div>
+                <div className="sim-telem-row"><span className="sim-telem-label">STATUS</span><span className="sim-telem-val" id="sim-t-status">PRE-LAUNCH</span></div>
               </div>
-              <div className="sim-ticker" id="sim-ticker-a"><div className="sim-ticker-text" id="sim-ticker-a-text"></div></div>
-              <div className="sim-winner-badge" id="sim-winner-a">FIRST TO ORBIT</div>
+              <div className="sim-ticker" id="sim-ticker-a"><div className="sim-ticker-text" id="sim-ticker-text"></div></div>
             </div>
-            <div className="sim-viewport-divider"></div>
-            <div className="sim-viewport-half" id="sim-viewport-b">
-              <canvas id="sim-canvas-b"></canvas>
-              <div className="sim-rocket-label sim-label-b" id="sim-label-b">ROCKET B</div>
-              <div className="sim-telemetry" id="sim-telemetry-b">
-                <div className="sim-telem-row"><span className="sim-telem-label">T+</span><span className="sim-telem-val" id="sim-b-time">00:00</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">ALT</span><span className="sim-telem-val" id="sim-b-alt">0 km</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">VEL</span><span className="sim-telem-val" id="sim-b-vel">0 m/s</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">G</span><span className="sim-telem-val" id="sim-b-accel">0 g</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">FUEL</span><span className="sim-telem-val" id="sim-b-fuel">100%</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">STATUS</span><span className="sim-telem-val" id="sim-b-status">READY</span></div>
-              </div>
-              <div className="sim-ticker" id="sim-ticker-b"><div className="sim-ticker-text" id="sim-ticker-b-text"></div></div>
-              <div className="sim-winner-badge" id="sim-winner-b">FIRST TO ORBIT</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Results overlay */}
-        <div className="sim-results-overlay" id="sim-results">
-          <div className="sim-results-card">
-            <div className="sim-results-title">COMPARISON RESULTS</div>
-            <div className="sim-results-body" id="sim-results-body"></div>
-            <button className="sim-launch-btn" id="sim-results-close" style={{marginTop:'16px'}}>CLOSE</button>
           </div>
         </div>
       </div>
@@ -435,7 +400,7 @@ function App() {
             <button className="mob-menu-item" id="mob-nav">{'\u2316'} Navigation Computer</button>
             <button className="mob-menu-item" id="mob-explore">{'\u2B21'} Auto-Explore</button>
             <button className="mob-menu-item" id="mob-controls">{'\u2328'} Show Controls</button>
-            <button className="mob-menu-item" id="mob-report">{'\u2263'} Mission Report</button>
+            <button className="mob-menu-item" id="mob-report">{'\u2263'} Astro Report</button>
           </div>
           <div className="mob-menu-section">
             <div className="mob-menu-title">VIEW</div>

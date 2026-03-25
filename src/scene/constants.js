@@ -5,7 +5,6 @@ export const YEAR_S = 365.25 * 86400;
 export const DAY_S = 86400;
 
 export const SCALE_LEVELS = [
-  { name: 'Atomic', unit: 'Å', factor: 1e-10 / AU / 1000 },
   { name: 'Solar System', unit: 'AU', factor: 1 },
   { name: 'Stellar', unit: 'ly', factor: 63241 },
   { name: 'Galactic', unit: 'kly', factor: 63241000 },
