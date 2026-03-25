@@ -2321,8 +2321,22 @@ let _triviaCollapsed = false;
 // Init trivia
 document.getElementById('trivia-toggle').addEventListener('click', () => {
   _triviaCollapsed = !_triviaCollapsed;
-  document.getElementById('trivia-box').classList.toggle('collapsed', _triviaCollapsed);
+  document.getElementById('trivia-panel').classList.toggle('collapsed', _triviaCollapsed);
+  _positionTriviaPanel();
 });
+
+function _positionTriviaPanel() {
+  const factsPanel = document.getElementById('facts-panel');
+  const triviaPanel = document.getElementById('trivia-panel');
+  if (!factsPanel || !triviaPanel) return;
+  const factsH = factsPanel.offsetHeight;
+  triviaPanel.style.bottom = (16 + factsH + 6) + 'px';
+}
+// Reposition when facts panel collapses/expands
+const _fpObserver = new MutationObserver(_positionTriviaPanel);
+const _fpEl = document.getElementById('facts-panel');
+if (_fpEl) _fpObserver.observe(_fpEl, { attributes: true, attributeFilter: ['class'], subtree: true });
+setTimeout(_positionTriviaPanel, 100);
 // Show first question
 (function _initTrivia() {
   const qEl = document.getElementById('trivia-question');
@@ -2332,6 +2346,8 @@ document.getElementById('trivia-toggle').addEventListener('click', () => {
 })();
 
 function _updateTrivia(dt) {
+  // Keep trivia positioned above facts panel
+  if (Math.floor(_triviaTimer) % 3 === 0 && _triviaTimer - Math.floor(_triviaTimer) < dt) _positionTriviaPanel();
   if (_triviaCollapsed) return;
   _triviaTimer += dt;
   const qEl = document.getElementById('trivia-question');

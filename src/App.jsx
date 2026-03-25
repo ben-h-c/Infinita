@@ -61,16 +61,6 @@ function App() {
             <div className="nearest-name" id="hud-nearest-name">Sun</div>
             <div className="nearest-info" id="hud-nearest-info">0 AU</div>
           </div>
-          <div className="trivia-box" id="trivia-box">
-            <div className="trivia-header" id="trivia-toggle">
-              <span className="trivia-title">{'\u2728'} Space Trivia</span>
-              <span className="trivia-chevron" id="trivia-chevron">{'\u25BC'}</span>
-            </div>
-            <div className="trivia-body" id="trivia-body">
-              <div className="trivia-question" id="trivia-question"></div>
-              <div className="trivia-answer" id="trivia-answer"></div>
-            </div>
-          </div>
         </div>
 
         <div className="hud-tr">
@@ -410,6 +400,22 @@ function App() {
               <div className="sim-telem-row"><span className="sim-telem-label">STATUS</span><span className="sim-telem-val" id="sim-t-status">PRE-LAUNCH</span></div>
             </div>
             <div className="sim-ticker" id="sim-ticker-a"><div className="sim-ticker-text" id="sim-ticker-text"></div></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trivia Panel — sits above Stellar Intelligence */}
+      <div id="trivia-panel">
+        <div className="facts-card">
+          <div className="facts-hdr" id="trivia-toggle">
+            <div className="facts-hdr-title"><span className="facts-hdr-icon">{'\u2728'}</span>Space Trivia</div>
+            <span className="facts-chevron" id="trivia-chevron">{'\u25BC'}</span>
+          </div>
+          <div className="facts-body" id="trivia-body-wrap">
+            <div className="facts-inner">
+              <div className="trivia-question" id="trivia-question"></div>
+              <div className="trivia-answer" id="trivia-answer"></div>
+            </div>
           </div>
         </div>
       </div>
