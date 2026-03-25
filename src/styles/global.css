@@ -243,7 +243,7 @@
   /* ── Launch History Overlay ── */
   .lh-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,2,8,0.98);display:none;flex-direction:column;overflow:hidden}
   .lh-overlay.open{display:flex}
-  .lh-header{padding:14px 22px 11px;border-bottom:1px solid rgba(0,238,255,0.1);display:flex;align-items:center;gap:16px;flex-shrink:0;backdrop-filter:blur(8px)}
+  .lh-header{padding:14px 22px 11px;border-bottom:1px solid rgba(0,238,255,0.1);display:flex;align-items:center;gap:16px;flex-shrink:0;backdrop-filter:blur(8px);position:relative;z-index:5;pointer-events:all}
   .lh-back-btn{background:transparent;border:1px solid rgba(0,238,255,0.2);color:rgba(0,238,255,0.6);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:6px 14px;cursor:pointer;border-radius:2px;transition:all 0.15s;white-space:nowrap}
   .lh-back-btn:hover{border-color:rgba(0,238,255,0.55);color:#0ef}
   .lh-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;letter-spacing:6px;color:#0ef;flex:1;text-align:center}
