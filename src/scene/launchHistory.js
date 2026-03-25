@@ -10,6 +10,7 @@ let _ehSites={};
 let _ehCamAngle=0,_ehLastT=0;
 let _ehLaunches=[]; // animated launch trajectories
 let _ehOrbits=[];   // orbiting objects
+let _ehScanRing=null, _ehScanRing2=null;
 
 let _getStarted = () => false;
 
@@ -217,72 +218,107 @@ function _initEarthViewer(){
   _ehCam=new THREE.PerspectiveCamera(40,w/h,0.01,500);
   _ehCam.position.set(0,0.6,3.6);
 
-  // Lighting
-  _ehScene.add(new THREE.AmbientLight(0x223344,0.55));
-  const sunL=new THREE.DirectionalLight(0xfff5dd,1.4); sunL.position.set(6,3,5); _ehScene.add(sunL);
-  const fillL=new THREE.DirectionalLight(0x334466,0.3); fillL.position.set(-5,2,-3); _ehScene.add(fillL);
+  // Lighting — dramatic sci-fi blue/purple tones
+  _ehScene.add(new THREE.AmbientLight(0x112244, 0.3));
+  const keyLight = new THREE.DirectionalLight(0x4488ff, 1.2); keyLight.position.set(4, 3, 5); _ehScene.add(keyLight);
+  const rimLight = new THREE.DirectionalLight(0x8844ff, 0.6); rimLight.position.set(-4, 1, -3); _ehScene.add(rimLight);
+  const topLight = new THREE.PointLight(0x00eeff, 0.5, 10); topLight.position.set(0, 3, 0); _ehScene.add(topLight);
 
-  // Earth — uses the same continent-based texture as the main scene
-  const earthTex = _mkTex(512, 256, _pTexFns.Earth);
-  _ehEarth=new THREE.Mesh(new THREE.SphereGeometry(1,64,64),
-    new THREE.MeshStandardMaterial({map:earthTex,roughness:0.7,metalness:0.05}));
+  // Earth — holographic wireframe style with glowing edges
+  // Solid dark base sphere
+  _ehEarth = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 48, 48),
+    new THREE.MeshPhongMaterial({ color: 0x050818, emissive: 0x061228, shininess: 5, transparent: true, opacity: 0.85 })
+  );
   _ehScene.add(_ehEarth);
 
-  // Swap in real NASA texture when loaded
-  loadRealEarthTexture((tex) => {
-    if (tex && _ehEarth) {
-      _ehEarth.material.map = tex;
-      _ehEarth.material.needsUpdate = true;
-    }
+  // Wireframe overlay — glowing cyan grid lines
+  const wireGeo = new THREE.SphereGeometry(1.005, 32, 24);
+  const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ccff, wireframe: true, transparent: true, opacity: 0.12 });
+  _ehEarth.add(new THREE.Mesh(wireGeo, wireMat));
+
+  // Brighter wireframe at key latitudes (equator, tropics, arctic)
+  [0, 23.5, -23.5, 66.5, -66.5].forEach(lat => {
+    const latRad = lat * Math.PI / 180;
+    const r = Math.cos(latRad) * 1.008;
+    const y = Math.sin(latRad) * 1.008;
+    const ringGeo = new THREE.RingGeometry(r - 0.002, r + 0.002, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00eeff, side: THREE.DoubleSide, transparent: true, opacity: 0.15 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.y = y;
+    ring.rotation.x = Math.PI / 2;
+    _ehEarth.add(ring);
   });
 
-  // Cloud layer
-  const cloudTex = _mkTex(256, 128, (u,v,nx,ny,nz) => {
-    const n1 = _sfbm(nx*4+10,ny*4+10,nz*4+10,4);
-    const n2 = _sfbm(nx*8+20,ny*8,nz*8+20,3)*0.3;
-    const cloud = Math.max(0, n1+n2-0.42)*2.5;
-    const c = Math.min(255,(cloud*255)|0);
-    return [c,c,c];
-  });
-  const cloudMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(1.015, 48, 48),
-    new THREE.MeshStandardMaterial({ map: cloudTex, transparent: true, opacity: 0.4, depthWrite: false, roughness: 1, metalness: 0 })
+  // Continent overlay — faint additive Earth texture for sci-fi holographic feel
+  const scifiTex = _mkTex(256, 128, _pTexFns.Earth);
+  const continentOverlay = new THREE.Mesh(
+    new THREE.SphereGeometry(1.003, 48, 48),
+    new THREE.MeshBasicMaterial({ map: scifiTex, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false })
   );
-  _ehEarth.add(cloudMesh);
+  _ehEarth.add(continentOverlay);
 
-  // Atmosphere sprite
-  const ac=document.createElement('canvas'); ac.width=128; ac.height=128;
-  const ax=ac.getContext('2d'),ag=ax.createRadialGradient(64,64,44,64,64,64);
-  ag.addColorStop(0,'rgba(60,140,255,0)'); ag.addColorStop(0.72,'rgba(60,140,255,0)');
-  ag.addColorStop(0.86,'rgba(60,140,255,0.32)'); ag.addColorStop(1,'rgba(60,140,255,0)');
-  ax.fillStyle=ag; ax.fillRect(0,0,128,128);
-  const atmo=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(ac),blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));
-  atmo.scale.setScalar(2.65); _ehScene.add(atmo);
+  // Outer glow — multiple layers for holographic feel
+  const glowColors = [
+    { color: '0,200,255', alpha: 0.25, scale: 2.4 },
+    { color: '100,50,255', alpha: 0.12, scale: 2.8 },
+    { color: '0,255,200', alpha: 0.08, scale: 3.2 },
+  ];
+  glowColors.forEach(gc => {
+    const ac = document.createElement('canvas'); ac.width = 128; ac.height = 128;
+    const ax = ac.getContext('2d'), ag = ax.createRadialGradient(64,64,30,64,64,64);
+    ag.addColorStop(0, `rgba(${gc.color},0)`);
+    ag.addColorStop(0.6, `rgba(${gc.color},0)`);
+    ag.addColorStop(0.8, `rgba(${gc.color},${gc.alpha})`);
+    ag.addColorStop(1, `rgba(${gc.color},0)`);
+    ax.fillStyle = ag; ax.fillRect(0,0,128,128);
+    const atmo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(ac), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, alphaTest: 0.01 }));
+    atmo.scale.setScalar(gc.scale);
+    _ehScene.add(atmo);
+  });
 
-  // Stars
-  const sp=new Float32Array(2000*3),sc=new Float32Array(2000*3);
-  for(let i=0;i<2000;i++){
-    const th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),r=80+Math.random()*120;
-    sp[i*3]=r*Math.sin(ph)*Math.cos(th);sp[i*3+1]=r*Math.sin(ph)*Math.sin(th);sp[i*3+2]=r*Math.cos(ph);
-    const b=0.5+Math.random()*0.5;sc[i*3]=b*0.9;sc[i*3+1]=b*0.95;sc[i*3+2]=b;
+  // Scan line ring — rotating horizontal ring around Earth
+  const scanGeo = new THREE.RingGeometry(1.35, 1.38, 64);
+  const scanMat = new THREE.MeshBasicMaterial({ color: 0x00eeff, side: THREE.DoubleSide, transparent: true, opacity: 0.15 });
+  const scanRing = new THREE.Mesh(scanGeo, scanMat);
+  scanRing.rotation.x = Math.PI / 2;
+  _ehScene.add(scanRing);
+  _ehScanRing = scanRing;
+
+  // Second scan ring — vertical, slower
+  const scan2Geo = new THREE.RingGeometry(1.45, 1.47, 64);
+  const scan2Mat = new THREE.MeshBasicMaterial({ color: 0x8844ff, side: THREE.DoubleSide, transparent: true, opacity: 0.08 });
+  const scan2Ring = new THREE.Mesh(scan2Geo, scan2Mat);
+  _ehScene.add(scan2Ring);
+  _ehScanRing2 = scan2Ring;
+
+  // Stars — brighter, more colorful for sci-fi
+  const sp = new Float32Array(1500*3), sc2 = new Float32Array(1500*3);
+  for (let i = 0; i < 1500; i++) {
+    const th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1), r = 60+Math.random()*140;
+    sp[i*3] = r*Math.sin(ph)*Math.cos(th); sp[i*3+1] = r*Math.sin(ph)*Math.sin(th); sp[i*3+2] = r*Math.cos(ph);
+    const roll = Math.random();
+    if (roll < 0.3) { sc2[i*3] = 0.3; sc2[i*3+1] = 0.7; sc2[i*3+2] = 1; } // blue
+    else if (roll < 0.5) { sc2[i*3] = 0.6; sc2[i*3+1] = 0.3; sc2[i*3+2] = 1; } // purple
+    else { const b = 0.5+Math.random()*0.5; sc2[i*3] = b; sc2[i*3+1] = b; sc2[i*3+2] = b; } // white
   }
-  const sGeo=new THREE.BufferGeometry();
-  sGeo.setAttribute('position',new THREE.BufferAttribute(sp,3));
-  sGeo.setAttribute('color',new THREE.BufferAttribute(sc,3));
-  _ehScene.add(new THREE.Points(sGeo,new THREE.PointsMaterial({size:0.4,vertexColors:true,sizeAttenuation:true,transparent:true,opacity:0.8})));
+  const sGeo = new THREE.BufferGeometry();
+  sGeo.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+  sGeo.setAttribute('color', new THREE.BufferAttribute(sc2, 3));
+  _ehScene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({ size: 0.5, vertexColors: true, sizeAttenuation: true, transparent: true, opacity: 0.9 })));
 
-  // Site markers
-  const seen=new Set();
-  LAUNCH_DATA.forEach(m=>{
-    const key=`${m.siteLat},${m.siteLon}`; if(seen.has(key)) return; seen.add(key);
-    const pos=_latlonTo3D(m.siteLat,m.siteLon);
-    const mc=document.createElement('canvas'); mc.width=32; mc.height=32;
-    const mx=mc.getContext('2d'),mg=mx.createRadialGradient(16,16,0,16,16,16);
-    mg.addColorStop(0,'rgba(0,238,255,1)'); mg.addColorStop(0.4,'rgba(0,238,255,0.5)'); mg.addColorStop(1,'rgba(0,238,255,0)');
-    mx.fillStyle=mg; mx.fillRect(0,0,32,32);
-    const mkSp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(mc),blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));
-    mkSp.scale.setScalar(0.09); mkSp.position.copy(pos).multiplyScalar(1.015);
-    _ehScene.add(mkSp); _ehSites[key]={sprite:mkSp,pos:pos.clone()};
+  // Site markers — pulsing neon dots
+  const seen = new Set();
+  LAUNCH_DATA.forEach(m => {
+    const key = `${m.siteLat},${m.siteLon}`; if (seen.has(key)) return; seen.add(key);
+    const pos = _latlonTo3D(m.siteLat, m.siteLon);
+    const mc = document.createElement('canvas'); mc.width = 32; mc.height = 32;
+    const mx = mc.getContext('2d'), mg = mx.createRadialGradient(16,16,0,16,16,16);
+    mg.addColorStop(0, 'rgba(0,255,200,1)'); mg.addColorStop(0.3, 'rgba(0,255,200,0.6)'); mg.addColorStop(1, 'rgba(0,255,200,0)');
+    mx.fillStyle = mg; mx.fillRect(0,0,32,32);
+    const mkSp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(mc), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+    mkSp.scale.setScalar(0.1); mkSp.position.copy(pos).multiplyScalar(1.015);
+    _ehScene.add(mkSp); _ehSites[key] = { sprite: mkSp, pos: pos.clone() };
   });
 
   // ── Animated launch trajectories (rockets launching from sites) ──
@@ -312,7 +348,8 @@ function _initEarthViewer(){
     pts.forEach((p, j) => {
       trailPos[j*3] = p.x; trailPos[j*3+1] = p.y; trailPos[j*3+2] = p.z;
       const fade = 1 - j / 40;
-      trailCol[j*3] = fade; trailCol[j*3+1] = fade * 0.7; trailCol[j*3+2] = fade * 0.3;
+      // Neon cyan-to-purple trail
+      trailCol[j*3] = fade * 0.2; trailCol[j*3+1] = fade * 0.9; trailCol[j*3+2] = fade;
     });
     const tGeo = new THREE.BufferGeometry();
     tGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
@@ -323,7 +360,7 @@ function _initEarthViewer(){
     // Small rocket dot at the head
     const dotC = document.createElement('canvas'); dotC.width = 16; dotC.height = 16;
     const dotCtx = dotC.getContext('2d'), dotG = dotCtx.createRadialGradient(8,8,0,8,8,8);
-    dotG.addColorStop(0, 'rgba(255,200,50,1)'); dotG.addColorStop(0.4, 'rgba(255,140,20,0.6)'); dotG.addColorStop(1, 'rgba(255,60,0,0)');
+    dotG.addColorStop(0, 'rgba(0,255,220,1)'); dotG.addColorStop(0.4, 'rgba(0,200,255,0.6)'); dotG.addColorStop(1, 'rgba(0,100,255,0)');
     dotCtx.fillStyle = dotG; dotCtx.fillRect(0,0,16,16);
     const dot = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(dotC), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
     dot.scale.setScalar(0.04);
@@ -382,7 +419,11 @@ function _ehAnimate(now=0){
   const cd=3.6,ce=0.45;
   _ehCam.position.set(Math.cos(_ehCamAngle)*cd,ce,Math.sin(_ehCamAngle)*cd);
   _ehCam.lookAt(0,0,0);
-  _ehEarth.rotation.y+=dt*0.04;
+  _ehEarth.rotation.y+=dt*0.06;
+
+  // Rotate scan rings
+  if (_ehScanRing) { _ehScanRing.rotation.z += dt * 0.3; _ehScanRing.material.opacity = 0.1 + 0.05 * Math.sin(now * 0.002); }
+  if (_ehScanRing2) { _ehScanRing2.rotation.x += dt * 0.15; _ehScanRing2.rotation.y += dt * 0.08; }
 
   // Animate launch trajectories
   _ehLaunches.forEach(l => {
@@ -408,7 +449,7 @@ function _ehAnimate(now=0){
       l.pts.forEach((pt, j) => {
         p[j*3] = pt.x; p[j*3+1] = pt.y; p[j*3+2] = pt.z;
         const fade = 1 - j / 40;
-        c[j*3] = fade; c[j*3+1] = fade * 0.7; c[j*3+2] = fade * 0.3;
+        c[j*3] = fade * 0.2; c[j*3+1] = fade * 0.9; c[j*3+2] = fade;
       });
       l.trail.geometry.attributes.position.needsUpdate = true;
       l.trail.geometry.attributes.color.needsUpdate = true;
