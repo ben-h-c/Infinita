@@ -291,10 +291,10 @@ function _initEarthViewer(){
   _ehCam.position.set(0,0.6,3.6);
 
   // Lighting — dramatic sci-fi blue/purple tones
-  _ehScene.add(new THREE.AmbientLight(0x112244, 0.3));
-  const keyLight = new THREE.DirectionalLight(0x4488ff, 1.2); keyLight.position.set(4, 3, 5); _ehScene.add(keyLight);
-  const rimLight = new THREE.DirectionalLight(0x8844ff, 0.6); rimLight.position.set(-4, 1, -3); _ehScene.add(rimLight);
-  const topLight = new THREE.PointLight(0x00eeff, 0.5, 10); topLight.position.set(0, 3, 0); _ehScene.add(topLight);
+  _ehScene.add(new THREE.AmbientLight(0x334466, 0.6));
+  const keyLight = new THREE.DirectionalLight(0x6699ff, 1.6); keyLight.position.set(4, 3, 5); _ehScene.add(keyLight);
+  const rimLight = new THREE.DirectionalLight(0x8855ff, 0.8); rimLight.position.set(-4, 1, -3); _ehScene.add(rimLight);
+  const topLight = new THREE.PointLight(0x00eeff, 0.7, 10); topLight.position.set(0, 3, 0); _ehScene.add(topLight);
 
   // Earth — real NASA texture with sci-fi overlays
   const earthTex = _mkTex(512, 256, _pTexFns.Earth);
