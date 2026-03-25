@@ -2229,26 +2229,29 @@ function updateHUD() {
   const container = document.getElementById('matrix-rain');
   if (!container) return;
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ΑΒΓΔΘΛΞΠΣΦΨΩαβγδθλξπσφψω@#$%&*+=<>';
-  const NUM_COLS = 14;
+  const NUM_COLS = 15;
   for (let c = 0; c < NUM_COLS; c++) {
     const col = document.createElement('div');
     col.className = 'matrix-col';
-    col.style.setProperty('--dur', (8 + Math.random() * 12) + 's');
-    col.style.animationDelay = (-Math.random() * 20) + 's';
-    col.style.opacity = (0.3 + Math.random() * 0.5).toFixed(2);
-    // Fill with ~80 random characters (enough to scroll continuously)
+    col.style.opacity = (0.25 + Math.random() * 0.55).toFixed(2);
+    const inner = document.createElement('div');
+    inner.className = 'matrix-col-inner';
+    inner.style.setProperty('--dur', (6 + Math.random() * 10) + 's');
+    inner.style.animationDelay = (-Math.random() * 15) + 's';
+    // Fill with enough characters to loop seamlessly
     let html = '';
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 60; i++) {
       const ch = chars[Math.floor(Math.random() * chars.length)];
       html += '<span>' + ch + '</span>';
     }
-    col.innerHTML = html;
+    inner.innerHTML = html;
+    col.appendChild(inner);
     container.appendChild(col);
   }
   // Periodically randomize characters for living effect
   setInterval(() => {
-    const cols = container.querySelectorAll('.matrix-col');
-    cols.forEach(col => {
+    const inners = container.querySelectorAll('.matrix-col-inner');
+    inners.forEach(col => {
       const spans = col.querySelectorAll('span');
       // Randomize ~10% of characters each tick
       for (let i = 0; i < 8; i++) {
