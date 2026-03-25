@@ -2013,27 +2013,17 @@ document.getElementById('splash-explore-btn').addEventListener('click', (e) => {
   lastTime = performance.now();
 
   // Show welcome intro (10s), then controls (10s) — each dismissable via X
+  // Show welcome — stays until user closes it
   const welcomeEl = document.getElementById('welcome-intro');
   welcomeEl.classList.add('active');
-  let _welcomeTimer = setTimeout(_dismissWelcome, 10000);
   function _dismissWelcome() {
-    clearTimeout(_welcomeTimer);
     if (!welcomeEl.classList.contains('active')) return;
     welcomeEl.classList.remove('active');
-    // Show controls overlay
+    // Show controls overlay — stays until user closes it
     controlsOpen = true;
     document.getElementById('controls-overlay').classList.add('open');
-    _controlsAutoTimer = setTimeout(_autoDismissControls, 10000);
-  }
-  let _controlsAutoTimer = null;
-  function _autoDismissControls() {
-    clearTimeout(_controlsAutoTimer); _controlsAutoTimer = null;
-    if (controlsOpen) { controlsOpen = false; document.getElementById('controls-overlay').classList.remove('open'); }
   }
   document.getElementById('welcome-close-btn').addEventListener('click', _dismissWelcome);
-  // Controls close btn already wired — also clear auto timer
-  const _origCtrlClose = document.getElementById('controls-close-btn');
-  _origCtrlClose.addEventListener('click', () => { if (_controlsAutoTimer) { clearTimeout(_controlsAutoTimer); _controlsAutoTimer = null; } });
 });
 document.getElementById('splash-launches-btn').addEventListener('click', (e) => {
   e.stopPropagation();
