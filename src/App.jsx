@@ -297,7 +297,7 @@ function App() {
                 </div>
               </div>
               <div className="lh-globe-wrapper">
-                <div className="lh-globe-label">AND BEYOND</div>
+                <div className="lh-globe-label">...And Beyond</div>
                 <div className="lh-globe-container">
                   <canvas id="solsys-canvas"></canvas>
                 </div>
