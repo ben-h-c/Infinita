@@ -42,12 +42,13 @@ export function openLaunchHistory() {
   _launchHistoryActive = true;
   document.getElementById('launch-history').classList.add('open');
   _renderAll();
-  setTimeout(() => { _initEarthViewer(); _initMarsViewer(); _initSolarSystemViewer(); }, 60);
+  setTimeout(() => { _initEarthViewer(); _initMarsViewer(); _initSolarSystemViewer(); _initGallery(); }, 60);
   requestAnimationFrame(t => { _ehLastT=t; _mhLastT=t; _ehAnimate(t); });
 }
 
 export function closeLaunchHistory() {
   _launchHistoryActive = false;
+  _stopGallery();
   // Clean up orbit labels
   _ehOrbits.forEach(o => { if (o.label && o.label.parentElement) o.label.parentElement.removeChild(o.label); });
   _ehOrbits = []; _ehLaunches = [];
@@ -933,6 +934,70 @@ function _ehAnimate(now=0){
 
     _ssRenderer.render(_ssScene, _ssCam);
   }
+}
+
+// ─── Rocket Photo Gallery ───────────────────────────────────────
+const _GALLERY_IMAGES = [
+  '/Infinita/images/rockets/7Czvvetwe3VEDtStfSsuuS.jpg',
+  '/Infinita/images/rockets/90_cernan_apollo17_1200.jpg',
+  '/Infinita/images/rockets/ASYHS1121_03.jpg',
+  '/Infinita/images/rockets/falcon_heavy_3_side_boosters_landing_on_lz1_and_lz2_feb_6_2018.webp',
+  '/Infinita/images/rockets/Gz3W8YUXcAAvZcM-1152x648-1758326151.jpg',
+  '/Infinita/images/rockets/images.jpeg',
+  '/Infinita/images/rockets/Starship Flight 9 - cosmic perspective-XL.jpg',
+];
+let _galleryIdx = 0;
+let _galleryInterval = null;
+
+function _initGallery() {
+  const img = document.getElementById('lh-gallery-img');
+  const dotsEl = document.getElementById('lh-gallery-dots');
+  if (!img || !dotsEl) return;
+
+  // Create dots
+  dotsEl.innerHTML = '';
+  _GALLERY_IMAGES.forEach((_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'lh-gallery-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => _showGalleryImage(i));
+    dotsEl.appendChild(dot);
+  });
+
+  // Show first image
+  _galleryIdx = 0;
+  img.src = _GALLERY_IMAGES[0];
+  img.classList.add('active');
+
+  // Auto-cycle every 5 seconds
+  if (_galleryInterval) clearInterval(_galleryInterval);
+  _galleryInterval = setInterval(() => {
+    _showGalleryImage((_galleryIdx + 1) % _GALLERY_IMAGES.length);
+  }, 5000);
+}
+
+function _showGalleryImage(idx) {
+  const img = document.getElementById('lh-gallery-img');
+  const dotsEl = document.getElementById('lh-gallery-dots');
+  if (!img) return;
+  _galleryIdx = idx;
+
+  // Fade out, swap, fade in
+  img.classList.remove('active');
+  setTimeout(() => {
+    img.src = _GALLERY_IMAGES[idx];
+    img.onload = () => img.classList.add('active');
+    // If already cached, trigger manually
+    if (img.complete) img.classList.add('active');
+  }, 400);
+
+  // Update dots
+  if (dotsEl) {
+    dotsEl.querySelectorAll('.lh-gallery-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+}
+
+function _stopGallery() {
+  if (_galleryInterval) { clearInterval(_galleryInterval); _galleryInterval = null; }
 }
 
 export function initLaunchHistory(getStarted) {

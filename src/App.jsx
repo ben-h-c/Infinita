@@ -311,11 +311,21 @@ function App() {
             <div className="lh-company-grid" id="lh-company-grid"></div>
           </div>
 
-          {/* Timeline — shows only top 8, with "Show All" button */}
+          {/* Timeline + rocket gallery */}
           <div className="lh-section">
             <div className="lh-section-title">TIMELINE</div>
-            <div className="lh-timeline" id="lh-timeline"></div>
-            <button className="lh-show-more-btn" id="lh-timeline-more" style={{display:'none'}}>SHOW FULL TIMELINE</button>
+            <div className="lh-timeline-row">
+              <div className="lh-timeline-col">
+                <div className="lh-timeline" id="lh-timeline"></div>
+                <button className="lh-show-more-btn" id="lh-timeline-more" style={{display:'none'}}>SHOW FULL TIMELINE</button>
+              </div>
+              <div className="lh-gallery" id="lh-gallery">
+                <div className="lh-gallery-frame">
+                  <img className="lh-gallery-img" id="lh-gallery-img" src="" alt="Historic rocket" />
+                </div>
+                <div className="lh-gallery-dots" id="lh-gallery-dots"></div>
+              </div>
+            </div>
           </div>
 
           {/* Mission catalog — hidden by default, revealed by button */}
