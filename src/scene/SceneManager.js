@@ -1071,9 +1071,9 @@ function updateExplore(dt) {
       const goalX = target.x + Math.cos(exploreOrbitAng) * orbitR;
       const goalY = target.y + height + Math.sin(exploreOrbitAng * 0.4) * height * 0.4;
       const goalZ = target.z + Math.sin(exploreOrbitAng) * orbitR;
-      // Smooth blend: lerp from current position to orbit position (fast in first 2s, then lock on)
-      const blend = Math.min(1, exploreDwellT * 1.5);
-      const lerpRate = Math.min(1, dt * (2 + blend * 6));
+      // Smooth blend: gently ease into orbit position over several seconds
+      const blend = Math.min(1, exploreDwellT * 0.5);
+      const lerpRate = Math.min(1, dt * (0.8 + blend * 2.2));
       camera.position.x += (goalX - camera.position.x) * lerpRate;
       camera.position.y += (goalY - camera.position.y) * lerpRate;
       camera.position.z += (goalZ - camera.position.z) * lerpRate;
@@ -1081,9 +1081,9 @@ function updateExplore(dt) {
       const toT = new THREE.Vector3().subVectors(target, camera.position).normalize();
       const ty = Math.atan2(-toT.x, -toT.z);
       const tp = Math.asin(Math.max(-1, Math.min(1, toT.y)));
-      yaw   += (ty - yaw)   * Math.min(1, dt * 4);
-      pitch += (tp - pitch) * Math.min(1, dt * 4);
-      roll  += (0 - roll)   * Math.min(1, dt * 3);
+      yaw   += (ty - yaw)   * Math.min(1, dt * 1.8);
+      pitch += (tp - pitch) * Math.min(1, dt * 1.8);
+      roll  += (0 - roll)   * Math.min(1, dt * 1.5);
     }
 
     const secs = Math.max(0, Math.ceil(remaining));
@@ -1512,15 +1512,19 @@ function updateArrivalOrbit(dt) {
   if (_arrivalOrbit.timer >= _arrivalOrbit.duration) { _arrivalOrbit.active = false; return; }
   _arrivalOrbit.angle += dt * 0.28;
   const {target, r, h, angle} = _arrivalOrbit;
-  camera.position.set(
-    target.x + Math.cos(angle) * r,
-    target.y + h + Math.sin(angle * 0.42) * h * 0.45,
-    target.z + Math.sin(angle) * r
-  );
+  const goalX = target.x + Math.cos(angle) * r;
+  const goalY = target.y + h + Math.sin(angle * 0.42) * h * 0.45;
+  const goalZ = target.z + Math.sin(angle) * r;
+  // Smooth lerp into orbit — gentle blend
+  const orbitBlend = Math.min(1, _arrivalOrbit.timer * 0.6);
+  const orbitLerp = Math.min(1, dt * (0.8 + orbitBlend * 2));
+  camera.position.x += (goalX - camera.position.x) * orbitLerp;
+  camera.position.y += (goalY - camera.position.y) * orbitLerp;
+  camera.position.z += (goalZ - camera.position.z) * orbitLerp;
   const toT = new THREE.Vector3().subVectors(target, camera.position).normalize();
-  yaw   += (Math.atan2(-toT.x, -toT.z) - yaw)   * Math.min(1, dt * 5);
-  pitch += (Math.asin(Math.max(-1, Math.min(1, toT.y))) - pitch) * Math.min(1, dt * 5);
-  roll  += (0 - roll) * Math.min(1, dt * 3);
+  yaw   += (Math.atan2(-toT.x, -toT.z) - yaw)   * Math.min(1, dt * 1.8);
+  pitch += (Math.asin(Math.max(-1, Math.min(1, toT.y))) - pitch) * Math.min(1, dt * 1.8);
+  roll  += (0 - roll) * Math.min(1, dt * 1.5);
 }
 
 // ── Warp streak effect (extracted module) ─────
@@ -1562,8 +1566,8 @@ function updateTravel(dt) {
 
     const ty = Math.atan2(-_tD.x, -_tD.z);
     const tp = Math.asin(Math.max(-1, Math.min(1, _tD.y)));
-    yaw   += (ty - yaw)   * Math.min(1, dt * 4);
-    pitch += (tp - pitch) * Math.min(1, dt * 4);
+    yaw   += (ty - yaw)   * Math.min(1, dt * 2);
+    pitch += (tp - pitch) * Math.min(1, dt * 2);
 
     // Turbulence only in mid-flight, taper off in last 30%
     const turbFade = p > 0.7 ? (1 - p) / 0.3 : 1;
@@ -1607,8 +1611,8 @@ function updateTravel(dt) {
     // Camera faces destination
     const ty = Math.atan2(-_tD.x, -_tD.z);
     const tp = Math.asin(Math.max(-1, Math.min(1, _tD.y)));
-    yaw   += (ty - yaw)   * Math.min(1, dt * 4);
-    pitch += (tp - pitch) * Math.min(1, dt * 4);
+    yaw   += (ty - yaw)   * Math.min(1, dt * 2);
+    pitch += (tp - pitch) * Math.min(1, dt * 2);
 
     // Turbulence at high speed
     const warpInt = Math.min(1, chosenAuS / C_AU_S);
@@ -1961,7 +1965,7 @@ function applyScale() {
   const fromSpeed = speedLevel;
   _scaleTransition = {
     from: -1, to: level,
-    progress: 0, duration: 1.8,
+    progress: 0, duration: 2.5,
     fromNear, fromFar, fromFog,
     toNear: params.near, toFar: params.far, toFog: params.fog,
     fromSpeed, toSpeed: params.speed,
@@ -1994,7 +1998,7 @@ function _updateScaleTransition(dt) {
 
   // Smooth camera position move (if target specified)
   if (tr.targetPos) {
-    camera.position.lerp(tr.targetPos, Math.min(1, dt * 1.2));
+    camera.position.lerp(tr.targetPos, Math.min(1, dt * 0.7));
   }
 
   if (t >= 1) {
