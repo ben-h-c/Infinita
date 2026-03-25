@@ -462,7 +462,7 @@
 .fp-timeline-panel{flex:1;position:relative;overflow:hidden;background:linear-gradient(to top,rgba(0,20,50,0.3) 0%,rgba(0,5,15,0.1) 50%,rgba(0,0,0,0) 100%);min-width:200px}
 .fp-timeline-line{position:absolute;left:50%;top:5%;bottom:5%;width:2px;background:linear-gradient(to top,rgba(0,238,255,0.4),rgba(0,238,255,0.1));transform:translateX(-50%)}
 .fp-altitude-scale{position:absolute;right:8px;top:5%;bottom:5%;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
-.fp-altitude-scale span{font-size:8px;color:rgba(0,238,255,0.3);letter-spacing:1px;text-align:right}
+.fp-altitude-scale span{font-size:10px;color:rgba(0,238,255,0.6);letter-spacing:1px;text-align:right;text-shadow:0 0 4px rgba(0,0,0,0.8)}
 .fp-milestones{position:absolute;left:0;right:0;top:5%;bottom:5%}
 .fp-milestone{position:absolute;display:flex;align-items:center;gap:8px;cursor:pointer;transition:opacity 0.4s;opacity:0.35;width:100%;pointer-events:all}
 .fp-milestone.reached{opacity:1}
@@ -471,10 +471,10 @@
 .fp-milestone-right{padding-left:55%}
 .fp-milestone-dot{width:10px;height:10px;border-radius:50%;background:rgba(0,238,255,0.3);border:2px solid rgba(0,2,8,0.98);flex-shrink:0;transition:all 0.3s}
 .fp-milestone.reached .fp-milestone-dot{background:#0ef;box-shadow:0 0 8px rgba(0,238,255,0.5)}
-.fp-milestone-card{background:rgba(0,12,25,0.85);border:1px solid rgba(0,238,255,0.1);border-radius:3px;padding:6px 10px;max-width:180px;backdrop-filter:blur(6px)}
+.fp-milestone-card{background:rgba(0,12,25,0.9);border:1px solid rgba(0,238,255,0.15);border-radius:3px;padding:8px 12px;max-width:200px;backdrop-filter:blur(8px)}
 .fp-milestone.active .fp-milestone-card{border-color:#0ef;box-shadow:0 0 12px rgba(0,238,255,0.15)}
-.fp-milestone-label{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:#0ef;letter-spacing:1px}
-.fp-milestone-time{font-size:8px;color:rgba(0,238,255,0.4);margin-top:2px}
+.fp-milestone-label{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#0ef;letter-spacing:1.5px;text-shadow:0 0 6px rgba(0,238,255,0.3)}
+.fp-milestone-time{font-size:10px;color:rgba(0,238,255,0.6);margin-top:3px}
 .fp-rocket-indicator{position:absolute;left:50%;transform:translateX(-50%);color:#0ef;font-size:16px;z-index:3;text-shadow:0 0 10px rgba(0,238,255,0.6);transition:bottom 0.3s ease;pointer-events:none}
 .fp-callout-panel{width:300px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(0,238,255,0.06);overflow:hidden;position:relative;z-index:100}
 .fp-hero-img{width:100%;height:200px;object-fit:cover;filter:brightness(0.6) contrast(1.1);border-bottom:1px solid rgba(0,238,255,0.08)}
