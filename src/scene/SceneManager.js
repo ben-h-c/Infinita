@@ -767,23 +767,27 @@ function updateExplore(dt) {
     exploreDwellT += dt;
     const remaining = exploreDest.dwell - exploreDwellT;
 
-    // Cinematic orbit around the destination
+    // Cinematic orbit around the destination — smooth blend in
     const target = exploreDest.getPos();
     if (target) {
       exploreOrbitAng += dt * 0.32;
       const orbitR = Math.max(0.5, exploreDest.r() * exploreDest.vMult);
       const height  = orbitR * 0.28;
-      camera.position.set(
-        target.x + Math.cos(exploreOrbitAng) * orbitR,
-        target.y + height + Math.sin(exploreOrbitAng * 0.4) * height * 0.4,
-        target.z + Math.sin(exploreOrbitAng) * orbitR
-      );
+      const goalX = target.x + Math.cos(exploreOrbitAng) * orbitR;
+      const goalY = target.y + height + Math.sin(exploreOrbitAng * 0.4) * height * 0.4;
+      const goalZ = target.z + Math.sin(exploreOrbitAng) * orbitR;
+      // Smooth blend: lerp from current position to orbit position (fast in first 2s, then lock on)
+      const blend = Math.min(1, exploreDwellT * 1.5);
+      const lerpRate = Math.min(1, dt * (2 + blend * 6));
+      camera.position.x += (goalX - camera.position.x) * lerpRate;
+      camera.position.y += (goalY - camera.position.y) * lerpRate;
+      camera.position.z += (goalZ - camera.position.z) * lerpRate;
       // Smoothly look at the object
       const toT = new THREE.Vector3().subVectors(target, camera.position).normalize();
       const ty = Math.atan2(-toT.x, -toT.z);
       const tp = Math.asin(Math.max(-1, Math.min(1, toT.y)));
-      yaw   += (ty - yaw)   * Math.min(1, dt * 5);
-      pitch += (tp - pitch) * Math.min(1, dt * 5);
+      yaw   += (ty - yaw)   * Math.min(1, dt * 4);
+      pitch += (tp - pitch) * Math.min(1, dt * 4);
       roll  += (0 - roll)   * Math.min(1, dt * 3);
     }
 
@@ -1250,12 +1254,14 @@ function updateTravel(dt) {
   const stopPt = travelDest.position.clone().addScaledVector(_stopDir, -stopR);
 
   if (exploreMode) {
-    // ── Explore mode: fixed 3.5s cinematic travel ──
+    // ── Explore mode: fixed duration cinematic travel ──
     travelElapsed = Math.min(travelElapsed + dt, TRAVEL_DURATION);
     const p = travelElapsed / TRAVEL_DURATION;
-    const ease = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p+2, 3)/2;
+    // Quintic ease-out for ultra-smooth deceleration into arrival
+    const ease = p < 0.5 ? 16*p*p*p*p*p : 1 - Math.pow(-2*p+2, 5)/2;
     camera.position.lerpVectors(travelOrigin, stopPt, ease);
-    const warpInt = Math.sin(p * Math.PI);
+    // Warp intensity: bell curve, but taper off earlier for smooth finish
+    const warpInt = Math.sin(Math.min(p * 1.15, 1) * Math.PI);
     travelSpeed = C_AU_S * warpInt;
     _tD.copy(_stopDir);
 
@@ -1264,8 +1270,10 @@ function updateTravel(dt) {
     yaw   += (ty - yaw)   * Math.min(1, dt * 4);
     pitch += (tp - pitch) * Math.min(1, dt * 4);
 
-    if (warpInt > 0.35) {
-      const sh = warpInt * warpInt * 0.0022;
+    // Turbulence only in mid-flight, taper off in last 30%
+    const turbFade = p > 0.7 ? (1 - p) / 0.3 : 1;
+    if (warpInt > 0.35 && turbFade > 0.01) {
+      const sh = warpInt * warpInt * 0.0018 * turbFade;
       camera.position.x += (Math.random()-0.5)*sh;
       camera.position.y += (Math.random()-0.5)*sh;
       camera.position.z += (Math.random()-0.5)*sh;
