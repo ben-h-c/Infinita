@@ -305,6 +305,7 @@ function App() {
                 </div>
               </div>
             </div>
+            <div className="lh-rocket-trails" id="lh-rocket-trails"></div>
           </div>
 
           {/* Organizations — collapsed cards that expand on click */}
