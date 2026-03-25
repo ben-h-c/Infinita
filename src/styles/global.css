@@ -203,6 +203,8 @@
   .ufo-msg{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#6f6}
   @keyframes ufo-pulse{0%{border-color:rgba(80,255,120,0.4);box-shadow:none}100%{border-color:rgba(80,255,120,0.9);box-shadow:0 0 18px rgba(80,255,120,0.25)}}
 
+  .splash-btn-disabled{opacity:0.35;cursor:not-allowed;pointer-events:none}
+
   /* ── Fun Facts Panel ── */
   #facts-panel{position:fixed;right:16px;z-index:10;pointer-events:all;width:272px;transition:bottom 0.3s}
   .facts-card{background:rgba(0,10,22,0.88);border:1px solid rgba(0,238,255,0.15);border-radius:4px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 4px 32px rgba(0,0,0,0.5)}
@@ -268,7 +270,8 @@
   .lh-section-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:4px;color:rgba(0,238,255,0.7);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(0,238,255,0.12)}
 
   .lh-company-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .lh-company-card{background:rgba(0,12,25,0.7);border:1px solid rgba(0,238,255,0.08);border-radius:4px;padding:16px;border-left:3px solid #0ef}
+  .lh-company-card{background:rgba(0,12,25,0.7);border:1px solid rgba(0,238,255,0.08);border-radius:4px;padding:16px;border-left:3px solid #0ef;transition:transform 0.25s ease,box-shadow 0.25s ease}
+  .lh-company-card:hover{transform:scale(1.03);box-shadow:0 4px 20px rgba(0,238,255,0.08)}
   .lh-company-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-bottom:10px;letter-spacing:1px}
   .lh-company-stat{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:rgba(255,255,255,0.7)}
   .lh-company-stat span{color:#0ef;font-weight:700}
@@ -280,7 +283,8 @@
   #earth-canvas,#mars-canvas,#solsys-canvas{width:100%;height:100%;display:block}
 
   .lh-timeline{display:flex;flex-direction:column;gap:0}
-  .lh-timeline-item{display:flex;gap:14px;padding:12px 0;border-left:2px solid rgba(0,238,255,0.15);margin-left:8px;padding-left:18px;position:relative}
+  .lh-timeline-item{display:flex;gap:14px;padding:12px 0;border-left:2px solid rgba(0,238,255,0.15);margin-left:8px;padding-left:18px;position:relative;transition:transform 0.25s ease;transform-origin:left center}
+  .lh-timeline-item:hover{transform:scale(1.02)}
   .lh-timeline-item::before{content:'';position:absolute;left:-5px;top:16px;width:8px;height:8px;border-radius:50%;background:#0ef;border:2px solid rgba(0,2,8,0.98)}
   .lh-timeline-item.failed::before{background:#f44}
   .lh-timeline-year{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#0ef;min-width:48px;flex-shrink:0}
@@ -319,6 +323,9 @@
   .lh-highlight-expand-stats span{color:#0ef;font-weight:700}
 
   .lh-timeline-wrap{position:relative;overflow:hidden}
+  .lh-snowfall{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .lh-snowflake{position:absolute;background:white;border-radius:50%;opacity:0;animation:snowDrift var(--dur) linear infinite}
+  @keyframes snowDrift{0%{transform:translateY(-10px) translateX(0);opacity:0}10%{opacity:var(--op)}90%{opacity:var(--op)}100%{transform:translateY(var(--fall)) translateX(var(--sway));opacity:0}}
   .lh-timeline-bg-img{position:absolute;right:-5%;top:50%;transform:translateY(-50%);width:80%;max-width:600px;opacity:0.3;pointer-events:none;filter:brightness(1.0) contrast(1.2);z-index:0}
   .lh-timeline-wrap .lh-timeline{position:relative;z-index:1}
   .lh-timeline-wrap .lh-show-more-btn{position:relative;z-index:1}

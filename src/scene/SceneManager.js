@@ -2872,7 +2872,6 @@ function openLaunchSim() {
   _fpTime = 0;
   _fpActiveMilestone = -1;
   document.getElementById('launch-sim').classList.add('open');
-  _initMatrixRain();
   _initSpaceBg();
   _renderRocketDiagram();
   _renderMilestones();

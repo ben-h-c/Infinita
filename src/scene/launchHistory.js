@@ -42,7 +42,7 @@ export function openLaunchHistory() {
   _launchHistoryActive = true;
   document.getElementById('launch-history').classList.add('open');
   _renderAll();
-  setTimeout(() => { _initEarthViewer(); _initMarsViewer(); _initSolarSystemViewer(); _initGallery(); }, 60);
+  setTimeout(() => { _initEarthViewer(); _initMarsViewer(); _initSolarSystemViewer(); _initGallery(); _initSnowfall(); }, 60);
   requestAnimationFrame(t => { _ehLastT=t; _mhLastT=t; _ehAnimate(t); });
 }
 
@@ -941,6 +941,26 @@ const _GALLERY_IMAGES = [
   '/Infinita/images/astronaut.png',
 ];
 let _galleryIdx = 0;
+function _initSnowfall() {
+  const container = document.getElementById('lh-snowfall');
+  if (!container || container.children.length > 0) return;
+  for (let i = 0; i < 50; i++) {
+    const flake = document.createElement('div');
+    flake.className = 'lh-snowflake';
+    const size = 1 + Math.random() * 3;
+    flake.style.width = size + 'px';
+    flake.style.height = size + 'px';
+    flake.style.left = Math.random() * 100 + '%';
+    flake.style.top = Math.random() * -20 + '%';
+    flake.style.setProperty('--dur', (8 + Math.random() * 12) + 's');
+    flake.style.setProperty('--op', (0.15 + Math.random() * 0.25).toFixed(2));
+    flake.style.setProperty('--fall', (300 + Math.random() * 500) + 'px');
+    flake.style.setProperty('--sway', ((Math.random() - 0.5) * 60) + 'px');
+    flake.style.animationDelay = (-Math.random() * 20) + 's';
+    container.appendChild(flake);
+  }
+}
+
 let _galleryInterval = null;
 
 function _initGallery() {

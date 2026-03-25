@@ -25,7 +25,7 @@ function App() {
           <div className="splash-buttons">
             <button className="splash-btn splash-btn-primary" id="splash-explore-btn">
               <div className="splash-btn-icon">{'\u2B21'}</div>
-              <div className="splash-btn-label">EXPLORE UNIVERSE</div>
+              <div className="splash-btn-label">EXPLORE UNIVERSE <span className="beta-tag">LIMITED</span></div>
               <div className="splash-btn-sub">Free-fly through space and time</div>
             </button>
             <button className="splash-btn" id="splash-launches-btn">
@@ -37,6 +37,11 @@ function App() {
               <div className="splash-btn-icon">{'\u2622'}</div>
               <div className="splash-btn-label">LAUNCH SIMULATOR <span className="beta-tag">NOT READY</span></div>
               <div className="splash-btn-sub">Design and simulate your own mission</div>
+            </button>
+            <button className="splash-btn splash-btn-disabled">
+              <div className="splash-btn-icon">{'\uD83D\uDDFA'}</div>
+              <div className="splash-btn-label">MISSION PLANNER <span className="beta-tag">NOT BUILT</span></div>
+              <div className="splash-btn-sub">Plan your journey across the cosmos</div>
             </button>
           </div>
         </div>
@@ -312,6 +317,7 @@ function App() {
           <div className="lh-section">
             <div className="lh-section-title">TIMELINE</div>
             <div className="lh-timeline-wrap">
+              <div className="lh-snowfall" id="lh-snowfall"></div>
               <img src="/Infinita/images/astronaut.png" alt="" className="lh-timeline-bg-img" />
               <div className="lh-timeline" id="lh-timeline"></div>
               <button className="lh-show-more-btn" id="lh-timeline-more" style={{display:'none'}}>SHOW FULL TIMELINE</button>
@@ -329,7 +335,6 @@ function App() {
       {/* Launch Simulator Overlay */}
       <div id="launch-sim" className="lh-overlay">
         <div className="fp-space-bg" id="fp-space-bg"></div>
-        <div className="fp-matrix-col" id="matrix-rain"></div>
         <div className="fp-header">
           <button className="lh-back-btn" id="sim-back-btn">{'\u2190'} BACK</button>
           <div className="fp-title">STARSHIP FLIGHT PROFILE</div>
