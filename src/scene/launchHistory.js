@@ -38,6 +38,7 @@ export function openLaunchHistory() {
 
 export function closeLaunchHistory() {
   _launchHistoryActive = false;
+  if (_ehRenderer) { _ehRenderer.dispose(); _ehRenderer = null; }
   document.getElementById('launch-history').classList.remove('open');
   if (!_getStarted()) {
     const sp = document.getElementById('splash');
@@ -197,10 +198,15 @@ function _initEarthViewer(){
   if(_ehRenderer) return;
   const canvas=document.getElementById('earth-canvas');
   if (!canvas) return;
-  const w=canvas.offsetWidth||500,h=canvas.offsetHeight||300;
+  const container = canvas.parentElement;
+  const w = container.clientWidth || 500;
+  const h = container.clientHeight || 300;
   _ehRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
-  _ehRenderer.setSize(w,h); _ehRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  _ehRenderer.setSize(w, h, false); // false = don't set CSS style, let container control it
+  _ehRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   _ehRenderer.setClearColor(0x010208,1);
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
   _ehScene=new THREE.Scene();
   _ehCam=new THREE.PerspectiveCamera(40,w/h,0.01,500);
   _ehCam.position.set(0,0.6,3.6);
@@ -303,8 +309,9 @@ export function initLaunchHistory(getStarted) {
     if(_ehRenderer&&_launchHistoryActive){
       const canvas=document.getElementById('earth-canvas');
       if (!canvas) return;
-      const w=canvas.offsetWidth,h=canvas.offsetHeight;
-      if(w&&h){ _ehRenderer.setSize(w,h); _ehCam.aspect=w/h; _ehCam.updateProjectionMatrix(); }
+      const container=canvas.parentElement;
+      const w=container.clientWidth,h=container.clientHeight;
+      if(w&&h){ _ehRenderer.setSize(w,h,false); _ehCam.aspect=w/h; _ehCam.updateProjectionMatrix(); }
     }
   });
 }
