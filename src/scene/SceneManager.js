@@ -3394,9 +3394,11 @@ function animate(now) {
     planetMeshes.forEach(({ mesh, data }) => {
       const pos = getOrbitalPosition(data, simTime);
       mesh.position.copy(pos);
-      mesh.rotation.y += dt * 0.5;
-      // Spin cloud layer slightly faster than planet
-      mesh.children.forEach(c => { if (c.userData._cloudSpin) c.rotation.y += dt * 0.08; });
+      // Planet spin tied to time rate
+      if (daysPassed !== 0) {
+        mesh.rotation.y += daysPassed * 0.5;
+        mesh.children.forEach(c => { if (c.userData._cloudSpin) c.rotation.y += daysPassed * 0.08; });
+      }
     });
 
     // Animate moons orbiting their parent planets (uses time rate)
