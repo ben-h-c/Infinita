@@ -145,15 +145,28 @@ MOONS.forEach(m => {
   const startAngle = Math.random() * Math.PI * 2;
   mesh.position.set(Math.cos(startAngle) * orbitR, 0, Math.sin(startAngle) * orbitR);
   parentPM.mesh.add(mesh);
-  moonMeshes.push({ mesh, data: m, parentMesh: parentPM.mesh, orbitR, angle: startAngle, moonRVis });
-  bodyPositions.push({ name: m.name, pos: mesh.position, radius: moonRVis, rReal: m.rReal });
+  // Trailing orbit line — ring buffer of recent positions
+  const TRAIL_LEN = 80;
+  const trailPositions = new Float32Array(TRAIL_LEN * 3);
+  const trailColors = new Float32Array(TRAIL_LEN * 3);
+  // Pre-fill trail with current position
+  for (let ti = 0; ti < TRAIL_LEN; ti++) {
+    trailPositions[ti * 3] = mesh.position.x;
+    trailPositions[ti * 3 + 1] = mesh.position.y;
+    trailPositions[ti * 3 + 2] = mesh.position.z;
+    const fade = ti / TRAIL_LEN;
+    trailColors[ti * 3] = 1; trailColors[ti * 3 + 1] = 1; trailColors[ti * 3 + 2] = 1;
+  }
+  const trailGeo = new THREE.BufferGeometry();
+  trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+  trailGeo.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+  const trailLine = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({
+    vertexColors: true, transparent: true, opacity: 0.3, depthWrite: false
+  }));
+  parentPM.mesh.add(trailLine);
 
-  // Orbit ring around parent
-  const ringGeo = new THREE.RingGeometry(orbitR - 0.0003, orbitR + 0.0003, 64);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.08 });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2;
-  parentPM.mesh.add(ring);
+  moonMeshes.push({ mesh, data: m, parentMesh: parentPM.mesh, orbitR, angle: startAngle, moonRVis, trailPositions, trailColors, trailGeo, trailHead: 0, TRAIL_LEN });
+  bodyPositions.push({ name: m.name, pos: mesh.position, radius: moonRVis, rReal: m.rReal });
 });
 
 // Load real Moon texture
@@ -3406,11 +3419,32 @@ function animate(now) {
       const orbitalSpeed = (2 * Math.PI) / m.data.T; // rad per sim-day
       m.angle += orbitalSpeed * daysPassed;
       const inc = (m.data.inc || 0) * Math.PI / 180;
-      m.mesh.position.set(
-        Math.cos(m.angle) * m.orbitR,
-        Math.sin(m.angle) * Math.sin(inc) * m.orbitR * 0.3,
-        Math.sin(m.angle) * m.orbitR
-      );
+      const px = Math.cos(m.angle) * m.orbitR;
+      const py = Math.sin(m.angle) * Math.sin(inc) * m.orbitR * 0.3;
+      const pz = Math.sin(m.angle) * m.orbitR;
+      m.mesh.position.set(px, py, pz);
+
+      // Update trail — shift buffer and add new head position
+      if (daysPassed !== 0) {
+        // Shift all positions forward (oldest drops off)
+        for (let ti = m.TRAIL_LEN - 1; ti > 0; ti--) {
+          m.trailPositions[ti * 3]     = m.trailPositions[(ti - 1) * 3];
+          m.trailPositions[ti * 3 + 1] = m.trailPositions[(ti - 1) * 3 + 1];
+          m.trailPositions[ti * 3 + 2] = m.trailPositions[(ti - 1) * 3 + 2];
+        }
+        m.trailPositions[0] = px;
+        m.trailPositions[1] = py;
+        m.trailPositions[2] = pz;
+        // Update fade colors (bright at head, fades to transparent)
+        for (let ti = 0; ti < m.TRAIL_LEN; ti++) {
+          const fade = 1 - (ti / m.TRAIL_LEN);
+          m.trailColors[ti * 3] = fade * 0.6;
+          m.trailColors[ti * 3 + 1] = fade * 0.8;
+          m.trailColors[ti * 3 + 2] = fade;
+        }
+        m.trailGeo.attributes.position.needsUpdate = true;
+        m.trailGeo.attributes.color.needsUpdate = true;
+      }
     });
 
     // Update Sun rotation and pulse
