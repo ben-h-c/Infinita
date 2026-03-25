@@ -483,7 +483,7 @@ yahSprite.scale.setScalar(8000);
 youAreHere.add(yahSprite);
 youAreHere.position.set(Math.cos(sunGalacticAngle) * sunGalacticR, 0, Math.sin(sunGalacticAngle) * sunGalacticR);
 galaxyGroup.add(youAreHere);
-labelsList.push({ el: createLabel('You Are Here ☉'), mesh: youAreHere, scaleLevel: 3 });
+// "You Are Here" label added in initLabels() to avoid temporal dead zone
 
 // ═══════════════════════════════════════════════
 //  ATOMIC SCALE
@@ -604,6 +604,8 @@ function initLabels() {
   namedStarMeshes.forEach(m => {
     labelsList.push({ el: createLabel(m.userData.name), mesh: m, scaleLevel: 2 });
   });
+  // "You Are Here" marker in the Milky Way
+  labelsList.push({ el: createLabel('You Are Here \u2609'), mesh: youAreHere, scaleLevel: 3 });
   // Background reference objects — placed at random angles, correct distances
   _bgRefData.forEach(obj => {
     const dAU = obj.dist * 63241; // ly to AU
