@@ -938,13 +938,7 @@ function _ehAnimate(now=0){
 
 // ─── Rocket Photo Gallery ───────────────────────────────────────
 const _GALLERY_IMAGES = [
-  '/Infinita/images/rockets/7Czvvetwe3VEDtStfSsuuS.jpg',
-  '/Infinita/images/rockets/90_cernan_apollo17_1200.jpg',
-  '/Infinita/images/rockets/ASYHS1121_03.jpg',
-  '/Infinita/images/rockets/falcon_heavy_3_side_boosters_landing_on_lz1_and_lz2_feb_6_2018.webp',
-  '/Infinita/images/rockets/Gz3W8YUXcAAvZcM-1152x648-1758326151.jpg',
-  '/Infinita/images/rockets/images.jpeg',
-  '/Infinita/images/rockets/Starship Flight 9 - cosmic perspective-XL.jpg',
+  '/Infinita/images/astronaut.png',
 ];
 let _galleryIdx = 0;
 let _galleryInterval = null;
