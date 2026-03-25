@@ -2235,6 +2235,14 @@ function updateHUD() {
     'SCRUB','YIKES','FAIL','REKT','TRASH','PLEB','BASIC',
     'WEAK','SALTY','OWNED','DERP','YAWN','MEH','CRINGE',
     'SUS','RATIO','COPE','L','SIGH','CLOWN','GOOBER',
+    'UR SLOW','GO HOME','TRY HARDER','NICE TRY',
+    'DO BETTER','NOT GREAT','WRONG WAY','LOST MUCH',
+    'STILL HERE','GIVE UP YET','YOURE LOST',
+    'SEND HELP','EARTH MISSES U','TURN AROUND',
+    'SPACE IS HARD','GET GOOD','SMOOTH BRAIN',
+    'BIG YIKES','SKILL ISSUE','NO SIGNAL',
+    'JUST STOP','REALLY BRO','HELP ME',
+    'IM WATCHING U','DONT LOOK UP','BOO',
   ];
   for (let c = 0; c < NUM_COLS; c++) {
     const col = document.createElement('div');
@@ -2264,8 +2272,8 @@ function updateHUD() {
         const idx = Math.floor(Math.random() * spans.length);
         spans[idx].textContent = chars[Math.floor(Math.random() * chars.length)];
       }
-      // ~3% chance per column per tick: sneak an insult vertically down a column
-      if (Math.random() < 0.03) {
+      // ~12% chance per column per tick: sneak an insult vertically down a column
+      if (Math.random() < 0.12) {
         const word = _insults[Math.floor(Math.random() * _insults.length)];
         const startIdx = Math.floor(Math.random() * (spans.length - word.length));
         for (let wi = 0; wi < word.length; wi++) {
