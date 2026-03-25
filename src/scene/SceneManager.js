@@ -13,6 +13,7 @@ import { buildRocket } from './rocketModels.js';
 import { initSatellites, toggleSatellites, updateSatellites, isSatellitesVisible } from './satellites.js';
 import { ensureLoaded, fetchGaiaStars, fetchNearbyGalaxies } from '../data/catalogManager.js';
 import { DEEP_SKY_OBJECTS } from '../data/messierNGC.js';
+import { STARSHIP_PROFILE, seekToTime } from './flightProfiles.js';
 
 export function init(container) {
 'use strict';
@@ -2787,824 +2788,536 @@ document.getElementById('splash-launches-btn').addEventListener('click', (e) => 
 });
 
 // ═══════════════════════════════════════════════
-//  LAUNCH SIMULATOR  (Starship-focused)
+//  LAUNCH SIMULATOR  (Flight Profile Viewer)
 // ═══════════════════════════════════════════════
 
-// SpaceX Starship / Super Heavy — real specifications
-const STARSHIP = {
-  booster: {
-    height: 71,
-    diameter: 9,
-    dryMass: 200000,
-    propMass: 3400000,
-    raptorThrust: 2256,
-    defaultEngines: 33,
-    isp_sl: 327,
-    isp_vac: 356,
-    burnTime: 170,
-  },
-  ship: {
-    height: 50,
-    diameter: 9,
-    dryMass: 100000,
-    propMass: 1200000,
-    raptorSL: 3,
-    raptorVac: 3,
-    thrustSL: 2256,
-    thrustVac: 2490,
-    isp_sl: 327,
-    isp_vac: 380,
-    burnTime: 360,
-  },
-  totalHeight: 121,
-};
-
-const SIM_SITES = {
-  Boca:  { lat: 25.99, lon: -97.15, name: 'Starbase, TX' },
-  KSC:   { lat: 28.57, lon: -80.65, name: 'Kennedy Space Center' },
-};
-
-const DEST_ALTS = { LEO: 200, GTO: 35786, Moon: 384400, Mars: 2250000 };
-
-// ── Sim state ────────────────────────────────────
-let _simActive = false;
-let _simLastT = 0;
-let _simState = null;   // holds physics + 3D refs
-let _simCountdown = -1; // countdown seconds remaining (-1 = not counting)
-
-// ── Helpers ──────────────────────────────────────
-function _getSimVal(groupId) {
-  const active = document.querySelector('#' + groupId + ' .sim-opt-btn.active');
-  return active ? active.dataset.val : '';
-}
-
-function _rotateEarthToSite(earth, siteKey) {
-  if (!earth) return;
-  const site = SIM_SITES[siteKey];
-  if (!site) return;
-  const lonRad = site.lon * (Math.PI / 180);
-  const latRad = site.lat * (Math.PI / 180);
-  earth.rotation.y = -lonRad + Math.PI;
-  earth.rotation.x = latRad;
-}
-
-
-// ── _updateSpecs: recompute vehicle specs from slider values ──
-function _updateSpecs() {
-  var payloadT = parseInt(document.getElementById('sim-payload').value, 10);
-  var nBoosterEngines = parseInt(document.getElementById('sim-engines').value, 10);
-  var nShipEngines = parseInt(document.getElementById('sim-ship-engines').value, 10);
-  var nSL = Math.ceil(nShipEngines / 2);
-  var nVac = nShipEngines - nSL;
-
-  // Update slider display values
-  var payloadValEl = document.getElementById('sim-payload-val');
-  if (payloadValEl) payloadValEl.textContent = payloadT + ' t';
-  var engValEl = document.getElementById('sim-engines-val');
-  if (engValEl) engValEl.textContent = nBoosterEngines + ' engines';
-  var shipEngValEl = document.getElementById('sim-ship-engines-val');
-  if (shipEngValEl) shipEngValEl.textContent = nShipEngines + ' engines (' + nSL + ' sea-level + ' + nVac + ' vacuum)';
-
-  // Compute specs
-  var boosterThrust = nBoosterEngines * STARSHIP.booster.raptorThrust;
-  var shipThrustSL = nSL * STARSHIP.ship.thrustSL;
-  var shipThrustVac = nVac * STARSHIP.ship.thrustVac;
-  var shipThrust = shipThrustSL + shipThrustVac;
-
-  var payloadKg = payloadT * 1000;
-  var liftoffMass = STARSHIP.booster.dryMass + STARSHIP.booster.propMass
-                  + STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg;
-  var liftoffMassT = liftoffMass / 1000;
-  var twr = (boosterThrust * 1000) / (liftoffMass * 9.81);
-
-  // Delta-V (Tsiolkovsky): stage 1 + stage 2
-  var g0 = 9.81;
-  var m0_b = liftoffMass;
-  var mf_b = liftoffMass - STARSHIP.booster.propMass;
-  var dv1 = STARSHIP.booster.isp_sl * g0 * Math.log(m0_b / mf_b);
-  var m0_s = STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg;
-  var mf_s = STARSHIP.ship.dryMass + payloadKg;
-  var avgIsp_s = (nSL * STARSHIP.ship.isp_sl + nVac * STARSHIP.ship.isp_vac) / nShipEngines;
-  var dv2 = avgIsp_s * g0 * Math.log(m0_s / mf_s);
-  var totalDV = (dv1 + dv2) / 1000; // km/s
-
-  // Update spec grid
-  var specsEl = document.getElementById('sim-specs');
-  if (specsEl) {
-    var specs = specsEl.querySelectorAll('.sim-spec-val');
-    if (specs.length >= 6) {
-      specs[0].textContent = STARSHIP.totalHeight + ' m';
-      specs[1].textContent = liftoffMassT.toLocaleString(undefined, {maximumFractionDigits:0}) + ' t';
-      specs[2].textContent = boosterThrust.toLocaleString() + ' kN';
-      specs[3].textContent = shipThrust.toLocaleString() + ' kN';
-      specs[4].textContent = twr.toFixed(2);
-      specs[5].textContent = '~' + totalDV.toFixed(1) + ' km/s';
-    }
-  }
-}
-
-// ── Build detailed Starship 3D model ─────────────
-function _buildStarship(simScene) {
-  var group = new THREE.Group();
-
-  // ── Super Heavy Booster ──
-  var boosterGroup = new THREE.Group();
-  boosterGroup.name = 'booster';
-
-  // Main booster body — silver cylinder
-  var boosterGeo = new THREE.CylinderGeometry(0.18, 0.20, 1.42, 24, 1);
-  var boosterMat = new THREE.MeshStandardMaterial({ color: 0xc8c8c8, roughness: 0.35, metalness: 0.6 });
-  var boosterBody = new THREE.Mesh(boosterGeo, boosterMat);
-  boosterBody.position.y = 0.71;
-  boosterGroup.add(boosterBody);
-
-  // Engine skirt (wider at bottom)
-  var skirtGeo = new THREE.CylinderGeometry(0.20, 0.22, 0.12, 24, 1);
-  var skirtMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.5, metalness: 0.4 });
-  var skirt = new THREE.Mesh(skirtGeo, skirtMat);
-  skirt.position.y = 0.06;
-  boosterGroup.add(skirt);
-
-  // Engine bells at bottom (many small cones)
-  var engineGeo = new THREE.ConeGeometry(0.012, 0.06, 8);
-  var engineMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.3, metalness: 0.8 });
-  for (var ei = 0; ei < 33; ei++) {
-    var angle = (ei / 33) * Math.PI * 2;
-    var ring = ei < 13 ? 0.06 : (ei < 23 ? 0.12 : 0.17);
-    var eng = new THREE.Mesh(engineGeo, engineMat);
-    eng.position.set(Math.cos(angle) * ring, -0.03, Math.sin(angle) * ring);
-    eng.rotation.x = Math.PI;
-    boosterGroup.add(eng);
-  }
-
-  // Grid fins (4)
-  var finGeo = new THREE.BoxGeometry(0.14, 0.08, 0.01);
-  var finMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.4, metalness: 0.7 });
-  for (var fi = 0; fi < 4; fi++) {
-    var fin = new THREE.Mesh(finGeo, finMat);
-    var fAngle = (fi / 4) * Math.PI * 2;
-    fin.position.set(Math.cos(fAngle) * 0.22, 1.35, Math.sin(fAngle) * 0.22);
-    fin.rotation.y = fAngle;
-    boosterGroup.add(fin);
-  }
-
-  // Hot-stage ring at top of booster
-  var ringGeo = new THREE.CylinderGeometry(0.20, 0.19, 0.04, 24, 1);
-  var ringMat = new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.5, metalness: 0.5 });
-  var hotRing = new THREE.Mesh(ringGeo, ringMat);
-  hotRing.position.y = 1.44;
-  boosterGroup.add(hotRing);
-
-  group.add(boosterGroup);
-
-  // ── Starship (Ship / upper stage) ──
-  var shipGroup = new THREE.Group();
-  shipGroup.name = 'ship';
-
-  // Ship body cylinder
-  var shipBodyGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.80, 24, 1);
-  var shipBodyMat = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, roughness: 0.3, metalness: 0.5 });
-  var shipBody = new THREE.Mesh(shipBodyGeo, shipBodyMat);
-  shipBody.position.y = 1.86;
-  shipGroup.add(shipBody);
-
-  // Heat shield side (dark tiles) — half cylinder
-  var tileGeo = new THREE.CylinderGeometry(0.183, 0.183, 0.80, 12, 1, false, 0, Math.PI);
-  var tileMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9, metalness: 0.1 });
-  var tiles = new THREE.Mesh(tileGeo, tileMat);
-  tiles.position.y = 1.86;
-  tiles.rotation.y = Math.PI;
-  shipGroup.add(tiles);
-
-  // Nose cone
-  var noseGeo = new THREE.ConeGeometry(0.18, 0.40, 24, 1);
-  var noseMat = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, roughness: 0.3, metalness: 0.5 });
-  var nose = new THREE.Mesh(noseGeo, noseMat);
-  nose.position.y = 2.46;
-  shipGroup.add(nose);
-
-  // Forward flaps (2)
-  var flapGeo = new THREE.BoxGeometry(0.16, 0.22, 0.008);
-  var flapMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.7, metalness: 0.3 });
-  for (var ffi = 0; ffi < 2; ffi++) {
-    var flap = new THREE.Mesh(flapGeo, flapMat);
-    var ffAngle = ffi === 0 ? 0 : Math.PI;
-    flap.position.set(Math.cos(ffAngle) * 0.19, 2.15, Math.sin(ffAngle) * 0.19);
-    flap.rotation.y = ffAngle;
-    shipGroup.add(flap);
-  }
-
-  // Aft flaps (2)
-  for (var afi = 0; afi < 2; afi++) {
-    var aflap = new THREE.Mesh(flapGeo, flapMat);
-    var afAngle = afi === 0 ? Math.PI / 2 : -Math.PI / 2;
-    aflap.position.set(Math.cos(afAngle) * 0.19, 1.55, Math.sin(afAngle) * 0.19);
-    aflap.rotation.y = afAngle;
-    shipGroup.add(aflap);
-  }
-
-  // Ship engines (smaller)
-  var sEngGeo = new THREE.ConeGeometry(0.015, 0.07, 8);
-  for (var si = 0; si < 6; si++) {
-    var sAngle = (si / 6) * Math.PI * 2;
-    var sEng = new THREE.Mesh(sEngGeo, engineMat);
-    sEng.position.set(Math.cos(sAngle) * 0.08, 1.42, Math.sin(sAngle) * 0.08);
-    sEng.rotation.x = Math.PI;
-    shipGroup.add(sEng);
-  }
-
-  shipGroup.position.y = 0; // stacked on top of booster
-  group.add(shipGroup);
-
-  return group;
-}
-
-// ── Init the 3D viewer ───────────────────────────
-function _initSimViewer() {
-  if (_simState && _simState.renderer) return;
-  var canvas = document.getElementById('sim-canvas-a');
-  if (!canvas) return;
-  var w = canvas.offsetWidth, h = canvas.offsetHeight;
-  if (!w || !h) return;
-
-  var simRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
-  simRenderer.setSize(w, h);
-  simRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  simRenderer.setClearColor(0x010208, 1);
-
-  var simScene = new THREE.Scene();
-  var simCam = new THREE.PerspectiveCamera(50, w / h, 0.01, 2000);
-  simCam.position.set(3, 2, 5);
-  simCam.lookAt(0, 1.5, 0);
-
-  // Earth
-  var eGeo = new THREE.SphereGeometry(2, 64, 64);
-  var eTex = _mkTex(512, 256, _pTexFns.Earth);
-  var earth = new THREE.Mesh(eGeo, new THREE.MeshStandardMaterial({ map: eTex, roughness: 0.7, metalness: 0.05 }));
-  earth.position.set(0, -1.8, 0);
-  simScene.add(earth);
-
-  // Cloud layer
-  var cloudTex = _mkTex(256, 128, function(u,v,nx,ny,nz) {
-    var n1 = _sfbm(nx*4+10,ny*4+10,nz*4+10,4);
-    var n2 = _sfbm(nx*8+20,ny*8,nz*8+20,3)*0.3;
-    var cloud = Math.max(0, n1+n2-0.42)*2.5;
-    var c = Math.min(255,(cloud*255)|0);
-    return [c,c,c];
-  });
-  var cloudMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(2.03, 48, 48),
-    new THREE.MeshStandardMaterial({ map: cloudTex, transparent: true, opacity: 0.4, depthWrite: false, roughness: 1, metalness: 0 })
-  );
-  cloudMesh.userData._cloudSpin = true;
-  earth.add(cloudMesh);
-
-  // Atmosphere glow
-  var aCanvas = document.createElement('canvas');
-  aCanvas.width = 128; aCanvas.height = 128;
-  var aCtx = aCanvas.getContext('2d');
-  var aGrad = aCtx.createRadialGradient(64, 64, 28, 64, 64, 64);
-  aGrad.addColorStop(0, 'rgba(100,160,255,0)');
-  aGrad.addColorStop(0.6, 'rgba(100,160,255,0)');
-  aGrad.addColorStop(0.8, 'rgba(100,160,255,0.15)');
-  aGrad.addColorStop(1, 'rgba(100,160,255,0)');
-  aCtx.fillStyle = aGrad;
-  aCtx.fillRect(0, 0, 128, 128);
-  var atmo = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: new THREE.CanvasTexture(aCanvas),
-    blending: THREE.AdditiveBlending,
-    transparent: true,
-    depthWrite: false
-  }));
-  atmo.scale.setScalar(6);
-  earth.add(atmo);
-
-  // Rotate to launch site
-  var selectedSite = _getSimVal('sim-site') || 'Boca';
-  _rotateEarthToSite(earth, selectedSite);
-
-  // Build Starship
-  var rocket = _buildStarship(simScene);
-  rocket.position.set(0, 0.22, 0);
-  simScene.add(rocket);
-
-  // Multi-layer exhaust
-  // Core flame (bright yellow-white)
-  var ex1Geo = new THREE.BufferGeometry();
-  var ex1Pos = new Float32Array(30 * 3);
-  ex1Geo.setAttribute('position', new THREE.BufferAttribute(ex1Pos, 3));
-  var ex1 = new THREE.Points(ex1Geo, new THREE.PointsMaterial({
-    color: 0xffeedd, size: 0.01, transparent: true, opacity: 0.95,
-    blending: THREE.AdditiveBlending, depthWrite: false
-  }));
-  // Outer flame (orange)
-  var ex2Geo = new THREE.BufferGeometry();
-  var ex2Pos = new Float32Array(60 * 3);
-  ex2Geo.setAttribute('position', new THREE.BufferAttribute(ex2Pos, 3));
-  var ex2 = new THREE.Points(ex2Geo, new THREE.PointsMaterial({
-    color: 0xff6600, size: 0.02, transparent: true, opacity: 0.7,
-    blending: THREE.AdditiveBlending, depthWrite: false
-  }));
-  // Smoke plume
-  var ex3Geo = new THREE.BufferGeometry();
-  var ex3Pos = new Float32Array(40 * 3);
-  ex3Geo.setAttribute('position', new THREE.BufferAttribute(ex3Pos, 3));
-  var ex3 = new THREE.Points(ex3Geo, new THREE.PointsMaterial({
-    color: 0x886644, size: 0.035, transparent: true, opacity: 0.3,
-    blending: THREE.NormalBlending, depthWrite: false
-  }));
-
-  var exhaustGrp = new THREE.Group();
-  exhaustGrp.add(ex1, ex2, ex3);
-  exhaustGrp.visible = false;
-  simScene.add(exhaustGrp);
-
-  var exhaust = {
-    grp: exhaustGrp,
-    layers: [
-      { pts: ex1, pos: ex1Pos, n: 30, spread: 0.02, lenMin: 0.03, lenMax: 0.12 },
-      { pts: ex2, pos: ex2Pos, n: 60, spread: 0.05, lenMin: 0.05, lenMax: 0.25 },
-      { pts: ex3, pos: ex3Pos, n: 40, spread: 0.07, lenMin: 0.10, lenMax: 0.40 }
-    ]
-  };
-
-  // Trajectory arc
-  var trajStart = new THREE.Vector3(0, 0.22, 0);
-  var trajControl = new THREE.Vector3(0.3, 2.5, 0);
-  var trajEnd = new THREE.Vector3(2.0, 4.5, 0);
-  var trajCurve = new THREE.QuadraticBezierCurve3(trajStart, trajControl, trajEnd);
-  var trajPts = trajCurve.getPoints(64);
-  var trajGeo = new THREE.BufferGeometry().setFromPoints(trajPts);
-  var trajLine = new THREE.Line(trajGeo, new THREE.LineBasicMaterial({
-    color: 0x00eeff, transparent: true, opacity: 0.15,
-    blending: THREE.AdditiveBlending, depthWrite: false
-  }));
-  trajLine.visible = false;
-  simScene.add(trajLine);
-
-  // Lights
-  simScene.add(new THREE.AmbientLight(0x223344, 0.4));
-  var simSunL = new THREE.DirectionalLight(0xfff0dd, 1.2);
-  simSunL.position.set(5, 3, 2);
-  simScene.add(simSunL);
-
-  // Stars
-  var sPos = new Float32Array(600 * 3);
-  for (var i = 0; i < 600; i++) {
-    var th = Math.random() * Math.PI * 2;
-    var ph = Math.acos(2 * Math.random() - 1);
-    var r = 400 + Math.random() * 600;
-    sPos[i * 3]     = r * Math.sin(ph) * Math.cos(th);
-    sPos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
-    sPos[i * 3 + 2] = r * Math.cos(ph);
-  }
-  var sGeo = new THREE.BufferGeometry();
-  sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
-  simScene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({
-    color: 0xffffff, size: 1.5, sizeAttenuation: true
-  })));
-
-  _simState = {
-    renderer: simRenderer,
-    scene: simScene,
-    cam: simCam,
-    rocket: rocket,
-    boosterGroup: rocket.children.find(function(c) { return c.name === 'booster'; }),
-    shipGroup: rocket.children.find(function(c) { return c.name === 'ship'; }),
-    separatedBooster: null,
-    exhaust: exhaust,
-    earth: earth,
-    trajLine: trajLine,
-    // Physics state
-    t: 0,
-    alt: 0,          // km
-    vel: 0,          // m/s
-    accel: 0,        // g
-    downrange: 0,    // km
-    boosterFuel: 100,
-    shipFuel: 100,
-    stage: 'booster', // 'booster', 'hot-stage', 'ship', 'coast', 'orbit'
-    pitchAngle: 90,  // degrees from horizontal (90 = vertical)
-    running: false,
-    completed: false,
-    countdownActive: false,
-    countdownT: 10,
-    // Milestone flags
-    _msgMaxQ: false,
-    _msgMECO: false,
-    _msgSep: false,
-    _msgBoostback: false,
-    _msgFairing: false,
-    _msgSECO: false,
-  };
-}
-
-// ── Show ticker message ──────────────────────────
-function _showTicker(text) {
-  var el = document.getElementById('sim-ticker-text');
-  if (!el) return;
-  el.classList.remove('typing');
-  el.textContent = text;
-  void el.offsetWidth;
-  el.classList.add('typing');
-}
-
-// ── Update telemetry display ─────────────────────
-function _updateTelemetry() {
-  if (!_simState) return;
-  var s = _simState;
-
-  var mins = Math.floor(Math.abs(s.t) / 60);
-  var secs = Math.floor(Math.abs(s.t) % 60);
-  var prefix = s.t < 0 ? 'T-' : 'T+';
-
-  var timeEl = document.getElementById('sim-t-time');
-  if (timeEl) timeEl.textContent = prefix + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-
-  var altEl = document.getElementById('sim-t-alt');
-  if (altEl) altEl.textContent = s.alt < 1000 ? s.alt.toFixed(1) + ' km' : (s.alt / 1000).toFixed(2) + ' Mm';
-
-  var velEl = document.getElementById('sim-t-vel');
-  if (velEl) velEl.textContent = s.vel < 1000 ? s.vel.toFixed(0) + ' m/s' : (s.vel / 1000).toFixed(2) + ' km/s';
-
-  var accelEl = document.getElementById('sim-t-accel');
-  if (accelEl) accelEl.textContent = s.accel.toFixed(1) + ' g';
-
-  var downrangeEl = document.getElementById('sim-t-downrange');
-  if (downrangeEl) downrangeEl.textContent = s.downrange.toFixed(1) + ' km';
-
-  var bfuelEl = document.getElementById('sim-t-bfuel');
-  if (bfuelEl) bfuelEl.textContent = Math.max(0, s.boosterFuel).toFixed(0) + '%';
-
-  var sfuelEl = document.getElementById('sim-t-sfuel');
-  if (sfuelEl) sfuelEl.textContent = Math.max(0, s.shipFuel).toFixed(0) + '%';
-
-  var stageEl = document.getElementById('sim-t-stage');
-  if (stageEl) stageEl.textContent = s.stage.toUpperCase();
-
-  var statusEl = document.getElementById('sim-t-status');
-  if (statusEl) {
-    if (s.countdownActive) statusEl.textContent = 'COUNTDOWN';
-    else if (!s.running && !s.completed) statusEl.textContent = 'PRE-LAUNCH';
-    else if (s.completed) statusEl.textContent = 'ORBIT ACHIEVED';
-    else if (s.stage === 'booster') statusEl.textContent = 'POWERED FLIGHT';
-    else if (s.stage === 'hot-stage') statusEl.textContent = 'HOT STAGING';
-    else if (s.stage === 'ship') statusEl.textContent = 'SHIP BURN';
-    else if (s.stage === 'coast') statusEl.textContent = 'COASTING';
-    else statusEl.textContent = s.stage.toUpperCase();
-  }
-}
-
-// ── Start launch (with countdown) ────────────────
-function _startLaunch() {
-  if (!_simState) return;
-  if (_simState.running || _simState.countdownActive) return;
-
-  // Reset state
-  _simState.t = -10;
-  _simState.alt = 0;
-  _simState.vel = 0;
-  _simState.accel = 0;
-  _simState.downrange = 0;
-  _simState.boosterFuel = 100;
-  _simState.shipFuel = 100;
-  _simState.stage = 'booster';
-  _simState.pitchAngle = 90;
-  _simState.running = false;
-  _simState.completed = false;
-  _simState.countdownActive = true;
-  _simState.countdownT = 10;
-  _simState._msgMaxQ = false;
-  _simState._msgMECO = false;
-  _simState._msgSep = false;
-  _simState._msgBoostback = false;
-  _simState._msgFairing = false;
-  _simState._msgSECO = false;
-
-  // 3D reset (only if renderer exists — skipped in image-only mode)
-  if (_simState.scene) {
-    if (_simState.rocket) { _simState.rocket.position.set(0, 0.22, 0); _simState.rocket.rotation.z = 0; }
-    if (_simState.separatedBooster) { _simState.scene.remove(_simState.separatedBooster); _simState.separatedBooster = null; }
-    if (_simState.rocket) { _simState.scene.remove(_simState.rocket); }
-    var newRocket = _buildStarship(_simState.scene);
-    newRocket.position.set(0, 0.22, 0);
-    _simState.scene.add(newRocket);
-    _simState.rocket = newRocket;
-    _simState.boosterGroup = newRocket.children.find(function(c) { return c.name === 'booster'; });
-    _simState.shipGroup = newRocket.children.find(function(c) { return c.name === 'ship'; });
-    if (_simState.exhaust) _simState.exhaust.grp.visible = false;
-    if (_simState.trajLine) { _simState.trajLine.visible = true; _simState.trajLine.material.opacity = 0.15; }
-    if (_simState.cam) { _simState.cam.position.set(3, 2, 5); _simState.cam.lookAt(0, 1.5, 0); }
-  }
-
-  var statusEl = document.getElementById('sim-status');
-  if (statusEl) statusEl.textContent = 'COUNTDOWN';
-
-  var launchBtn = document.getElementById('sim-launch-btn');
-  if (launchBtn) { launchBtn.textContent = 'COUNTDOWN...'; launchBtn.classList.add('counting'); }
-
-  _showTicker('T-10... LAUNCH SEQUENCE INITIATED');
-}
-
-// ── Physics + Rendering loop ─────────────────────
-function _simAnimate(now) {
-  if (!_simActive || !_simState) return;
-  requestAnimationFrame(_simAnimate);
-
-  var dt = Math.min((now - _simLastT) / 1000, 0.1);
-  _simLastT = now;
-
-  var s = _simState;
-
-  // ── Countdown phase ──
-  if (s.countdownActive) {
-    s.t += dt;
-    if (s.t < 0) {
-      var countSec = Math.ceil(Math.abs(s.t));
-      if (countSec !== s.countdownT) {
-        s.countdownT = countSec;
-        if (countSec <= 10 && countSec > 0) {
-          _showTicker('T-' + countSec + '...');
-        }
-      }
-      _updateTelemetry();
-      return;
-    }
-    // Countdown just hit zero — ignition!
-    s.countdownActive = false;
-    s.running = true;
-    s.t = 0;
-    _showTicker('LIFTOFF! All ' + document.getElementById('sim-engines').value + ' Raptors at full thrust.');
-    var statusEl2 = document.getElementById('sim-status');
-    if (statusEl2) statusEl2.textContent = 'LAUNCH IN PROGRESS';
-  }
-
-  if (!s.running && !s.completed) {
-    return;
-  }
-
-  // ── Physics step ──
-  if (s.running && !s.completed) {
-    s.t += dt;
-
-    var g0 = 9.81;
-    var nBoosterEng = parseInt(document.getElementById('sim-engines').value, 10);
-    var nShipEng = parseInt(document.getElementById('sim-ship-engines').value, 10);
-    var nSL = Math.ceil(nShipEng / 2);
-    var nVac = nShipEng - nSL;
-    var payloadKg = parseInt(document.getElementById('sim-payload').value, 10) * 1000;
-
-    // Gravity at altitude
-    var gAlt = g0 * Math.pow(6371 / (6371 + s.alt), 2);
-
-    // Atmospheric drag: proportional to v^2, decreasing with altitude (scale height ~8.5km)
-    var rho = Math.exp(-s.alt / 8.5);
-    var dragAccel = 0.5 * rho * s.vel * s.vel * 0.000003;
-    dragAccel = Math.min(dragAccel, 5 * g0);
-
-    // Gravity turn: pitch transitions from 90 to ~10 degrees over first 200s
-    if (s.t < 200) {
-      s.pitchAngle = 90 - (80 * Math.min(s.t / 200, 1) * Math.min(s.t / 200, 1));
-    } else {
-      s.pitchAngle = Math.max(5, 10 - (s.t - 200) * 0.01);
-    }
-    var pitchRad = s.pitchAngle * Math.PI / 180;
-
-    var thrustAccel = 0;
-
-    if (s.stage === 'booster') {
-      // Booster phase
-      var boosterThrustN = nBoosterEng * STARSHIP.booster.raptorThrust * 1000;
-      var boosterMassFlow = boosterThrustN / (STARSHIP.booster.isp_sl * g0);
-      var boosterFuelUsed = boosterMassFlow * dt;
-      var boosterFuelFrac = s.boosterFuel / 100;
-      var currentBoosterProp = STARSHIP.booster.propMass * boosterFuelFrac;
-      var totalMass = STARSHIP.booster.dryMass + currentBoosterProp
-                    + STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg;
-      thrustAccel = boosterThrustN / totalMass;
-
-      s.boosterFuel -= (boosterFuelUsed / STARSHIP.booster.propMass) * 100;
-      if (s.boosterFuel <= 0) s.boosterFuel = 0;
-
-      // MECO at ~170s or fuel exhaustion
-      if (s.t >= STARSHIP.booster.burnTime || s.boosterFuel <= 0) {
-        if (!s._msgMECO) {
-          s._msgMECO = true;
-          s.stage = 'hot-stage';
-          _showTicker('Booster MECO. Hot-staging initiated.');
-        }
-      }
-    } else if (s.stage === 'hot-stage') {
-      // Brief hot-staging phase (~3s) — both stages briefly fire
-      var hsBoosterThrust = nBoosterEng * STARSHIP.booster.raptorThrust * 1000 * 0.3;
-      var hsShipThrust = (nSL * STARSHIP.ship.thrustSL + nVac * STARSHIP.ship.thrustVac) * 1000;
-      var hsTotalMass = STARSHIP.ship.dryMass + STARSHIP.ship.propMass + payloadKg + STARSHIP.booster.dryMass;
-      thrustAccel = (hsBoosterThrust + hsShipThrust) / hsTotalMass;
-
-      // Ship fuel starts burning
-      var hsShipMassFlow = hsShipThrust / (STARSHIP.ship.isp_vac * g0);
-      s.shipFuel -= (hsShipMassFlow * dt / STARSHIP.ship.propMass) * 100;
-
-      if (!s._msgSep && s.t >= STARSHIP.booster.burnTime + 3) {
-        s._msgSep = true;
-        s.stage = 'ship';
-        _showTicker('Stage separation. Ship engines at full thrust.');
-
-        // Stage separation (visual handled by image overlay)
-      }
-      if (!s._msgBoostback && s.t >= STARSHIP.booster.burnTime + 5) {
-        s._msgBoostback = true;
-        _showTicker('Booster beginning boostback burn.');
-      }
-    } else if (s.stage === 'ship') {
-      // Ship phase — thrust transitions from SL to Vac with altitude
-      var vacFrac = Math.min(1, s.alt / 100);
-      var slFrac = 1 - vacFrac;
-      var shipThrustSLN = nSL * STARSHIP.ship.thrustSL * 1000 * slFrac;
-      var shipThrustVacN = nVac * STARSHIP.ship.thrustVac * 1000;
-      var slInVac = nSL * STARSHIP.ship.thrustSL * 1000 * vacFrac * 0.85;
-      var totalShipThrust = shipThrustSLN + slInVac + shipThrustVacN;
-
-      var avgIsp = (nSL * STARSHIP.ship.isp_sl * (1 - vacFrac * 0.15) + nVac * STARSHIP.ship.isp_vac) / nShipEng;
-      var shipMassFlow = totalShipThrust / (avgIsp * g0);
-      var shipPropFrac = s.shipFuel / 100;
-      var currentShipProp = STARSHIP.ship.propMass * shipPropFrac;
-      var shipTotalMass = STARSHIP.ship.dryMass + currentShipProp + payloadKg;
-      thrustAccel = totalShipThrust / shipTotalMass;
-
-      s.shipFuel -= (shipMassFlow * dt / STARSHIP.ship.propMass) * 100;
-      if (s.shipFuel <= 0) {
-        s.shipFuel = 0;
-        s.stage = 'coast';
-        if (!s._msgSECO) {
-          s._msgSECO = true;
-          _showTicker('SECO. Orbit insertion confirmed!');
-        }
-      }
-    } else if (s.stage === 'coast') {
-      thrustAccel = 0;
-    }
-
-    // Net acceleration along flight path
-    var netAccelAlongPath = thrustAccel - gAlt * Math.sin(pitchRad) - dragAccel;
-    s.accel = thrustAccel / g0;
-    s.vel += netAccelAlongPath * dt;
-    if (s.vel < 0) s.vel = 0;
-
-    // Altitude and downrange
-    s.alt += (s.vel * Math.sin(pitchRad) * dt) / 1000;
-    s.downrange += (s.vel * Math.cos(pitchRad) * dt) / 1000;
-
-    // Milestone messages
-    if (!s._msgMaxQ && s.t > 55 && s.t < 65) {
-      s._msgMaxQ = true;
-      _showTicker('Max Q \u2014 maximum dynamic pressure');
-    }
-    if (!s._msgFairing && s.alt > 100 && s.alt < 200 && s.stage === 'ship' && s.t > 250) {
-      s._msgFairing = true;
-      _showTicker('Fairing jettison');
-    }
-
-    // Target altitude check for orbit
-    var destVal = _getSimVal('sim-dest') || 'LEO';
-    var targetAlt = DEST_ALTS[destVal] || 200;
-    var orbitalVel = Math.sqrt(g0 * Math.pow(6371, 2) / (6371 + targetAlt)) * 1000;
-    if (s.alt >= targetAlt || (s.alt > 180 && s.vel >= orbitalVel * 0.95)) {
-      s.completed = true;
-      s.running = false;
-      if (!s._msgSECO) {
-        s._msgSECO = true;
-        _showTicker('SECO. Orbit insertion confirmed!');
-      }
-      var simStatusEl = document.getElementById('sim-status');
-      if (simStatusEl) simStatusEl.textContent = 'ORBIT ACHIEVED';
-      var launchBtn2 = document.getElementById('sim-launch-btn');
-      if (launchBtn2) { launchBtn2.textContent = 'INITIATE LAUNCH SEQUENCE'; launchBtn2.classList.remove('counting'); }
-    }
-
-    // Auto-complete if coasting with sufficient altitude + velocity
-    if (s.stage === 'coast' && s.alt > 150 && s.vel > 6000) {
-      s.completed = true;
-      s.running = false;
-      var simStatusEl3 = document.getElementById('sim-status');
-      if (simStatusEl3) simStatusEl3.textContent = 'ORBIT ACHIEVED';
-      var launchBtn3 = document.getElementById('sim-launch-btn');
-      if (launchBtn3) { launchBtn3.textContent = 'INITIATE LAUNCH SEQUENCE'; launchBtn3.classList.remove('counting'); }
-    }
-  }
-
-  // ── Image overlay effects ──
-  var overlay = document.getElementById('sim-img-overlay');
-  if (overlay) {
-    if (s.running && (s.stage === 'booster' || s.stage === 'hot-stage' || s.stage === 'ship')) {
-      overlay.className = 'sim-img-overlay launching';
-    } else if (s.completed) {
-      overlay.className = 'sim-img-overlay orbit';
-    } else {
-      overlay.className = 'sim-img-overlay';
-    }
-  }
-
-  // Image shake effect during Max Q / high thrust
-  var img = document.getElementById('sim-starship-img');
-  if (img && s.running) {
-    var shake = s.accel > 1.5 ? (s.accel - 1.5) * 0.3 : 0;
-    if (shake > 0) {
-      var sx = (Math.random() - 0.5) * shake;
-      var sy = (Math.random() - 0.5) * shake;
-      img.style.transform = 'translate(' + sx + 'px,' + sy + 'px)';
-    } else {
-      img.style.transform = '';
-    }
-  } else if (img) {
-    img.style.transform = '';
-  }
-
-  _updateTelemetry();
-}
-
-// ── Open / Close ─────────────────────────────────
+let _fpActive = false;
+let _fpPlaying = false;
+let _fpSpeed = 1;
+let _fpTime = 0;
+let _fpLastT = 0;
+let _fpState = null;
+let _fpActiveMilestone = -1;
+
+// (old SIM_SITES / DEST_ALTS removed — flight profile uses STARSHIP_PROFILE)
+
+// ── Flight Profile functions ─────────────────────
+
+// ── openLaunchSim ────────────────────────────────
 function openLaunchSim() {
-  _simActive = true;
+  _fpActive = true;
+  _fpPlaying = false;
+  _fpTime = 0;
+  _fpActiveMilestone = -1;
   document.getElementById('launch-sim').classList.add('open');
-  var statusEl = document.getElementById('sim-status');
-  if (statusEl) statusEl.textContent = 'CONFIGURE LAUNCH';
-
-  // Create simState for physics (no 3D renderer needed — using image display)
-  if (!_simState) {
-    _simState = {
-      renderer: null, scene: null, cam: null,
-      rocket: null, boosterGroup: null, shipGroup: null,
-      separatedBooster: null, exhaust: null, earth: null, trajLine: null,
-      t: 0, alt: 0, vel: 0, accel: 0, downrange: 0,
-      boosterFuel: 100, shipFuel: 100,
-      stage: 'booster', pitchAngle: 90,
-      running: false, completed: false,
-      countdownActive: false, countdownT: 10,
-      _msgMaxQ: false, _msgMECO: false, _msgSep: false,
-      _msgBoostback: false, _msgFairing: false, _msgSECO: false,
-    };
-  }
-
-  // Initialize matrix rain background + specs
   _initMatrixRain();
-  _updateSpecs();
-  _updateTelemetry();
-
-  requestAnimationFrame(function(t) {
-    _simLastT = t;
-    _simAnimate(t);
-  });
+  _renderRocketDiagram();
+  _renderMilestones();
+  // Reset to T=0 state
+  _fpState = seekToTime(0, STARSHIP_PROFILE);
+  _updateFP(_fpState);
+  requestAnimationFrame(function(t) { _fpLastT = t; _fpAnimate(t); });
 }
 
+// ── closeLaunchSim ───────────────────────────────
 function closeLaunchSim() {
-  _simActive = false;
-  if (_simState) { _simState.running = false; _simState.countdownActive = false; }
-  _simState = null;
-  var overlay = document.getElementById('sim-img-overlay');
-  if (overlay) { overlay.className = 'sim-img-overlay'; }
+  _fpActive = false;
+  _fpPlaying = false;
   document.getElementById('launch-sim').classList.remove('open');
   document.getElementById('splash').classList.remove('hidden');
 }
 
+
+// ── _renderRocketDiagram ─────────────────────────
+function _renderRocketDiagram() {
+  var panel = document.getElementById('fp-rocket-panel');
+  if (!panel) return;
+  // SVG Starship diagram — booster bottom 58.7%, ship top 41.3%
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var svgW = 80, svgH = 500;
+  var svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 ' + svgW + ' ' + svgH);
+  svg.setAttribute('class', 'fp-rocket-svg');
+  svg.style.width = '80px';
+  svg.style.height = '100%';
+  svg.style.maxHeight = svgH + 'px';
+
+  // ── Booster group (bottom 58.7% of height) ──
+  var boosterG = document.createElementNS(svgNS, 'g');
+  boosterG.setAttribute('class', 'fp-rocket-stage');
+  boosterG.setAttribute('data-stage', 'superheavy');
+  boosterG.style.setProperty('--glow', '#0ef');
+
+  // Booster body — tall rounded rect
+  var boosterY = svgH * 0.413; // top of booster
+  var boosterH = svgH * 0.557; // 55.7% for body (leaving room for engines)
+  var boosterRect = document.createElementNS(svgNS, 'rect');
+  boosterRect.setAttribute('x', '22');
+  boosterRect.setAttribute('y', String(boosterY));
+  boosterRect.setAttribute('width', '36');
+  boosterRect.setAttribute('height', String(boosterH));
+  boosterRect.setAttribute('rx', '3');
+  boosterRect.setAttribute('fill', '#a0a0a8');
+  boosterRect.setAttribute('stroke', 'rgba(0,238,255,0.15)');
+  boosterRect.setAttribute('stroke-width', '0.5');
+  boosterG.appendChild(boosterRect);
+
+  // Booster vertical line details (panel seams)
+  for (var si = 0; si < 3; si++) {
+    var seam = document.createElementNS(svgNS, 'line');
+    seam.setAttribute('x1', String(30 + si * 10));
+    seam.setAttribute('y1', String(boosterY + 5));
+    seam.setAttribute('x2', String(30 + si * 10));
+    seam.setAttribute('y2', String(boosterY + boosterH - 5));
+    seam.setAttribute('stroke', 'rgba(0,0,0,0.15)');
+    seam.setAttribute('stroke-width', '0.3');
+    boosterG.appendChild(seam);
+  }
+
+  // Engine skirt (wider at bottom)
+  var skirtY = boosterY + boosterH;
+  var skirt = document.createElementNS(svgNS, 'polygon');
+  skirt.setAttribute('points', '22,' + skirtY + ' 18,' + (skirtY + 12) + ' 62,' + (skirtY + 12) + ' 58,' + skirtY);
+  skirt.setAttribute('fill', '#808088');
+  skirt.setAttribute('stroke', 'rgba(0,238,255,0.1)');
+  skirt.setAttribute('stroke-width', '0.3');
+  boosterG.appendChild(skirt);
+
+  // Engine nozzles at bottom
+  var engY = skirtY + 12;
+  var engColors = ['#555', '#666', '#555', '#666', '#555'];
+  var engXPositions = [26, 32, 40, 48, 54];
+  for (var ei = 0; ei < 5; ei++) {
+    var nozzle = document.createElementNS(svgNS, 'rect');
+    nozzle.setAttribute('x', String(engXPositions[ei] - 2));
+    nozzle.setAttribute('y', String(engY));
+    nozzle.setAttribute('width', '4');
+    nozzle.setAttribute('height', '8');
+    nozzle.setAttribute('rx', '1');
+    nozzle.setAttribute('fill', engColors[ei]);
+    boosterG.appendChild(nozzle);
+  }
+  // Raptor cluster indicator dots (inner ring)
+  var clusterCX = 40, clusterCY = engY + 4;
+  for (var ci = 0; ci < 8; ci++) {
+    var ca = (ci / 8) * Math.PI * 2;
+    var dot = document.createElementNS(svgNS, 'circle');
+    dot.setAttribute('cx', String(clusterCX + Math.cos(ca) * 8));
+    dot.setAttribute('cy', String(clusterCY + Math.sin(ca) * 3));
+    dot.setAttribute('r', '1');
+    dot.setAttribute('fill', '#777');
+    boosterG.appendChild(dot);
+  }
+
+  // Grid fins (4 small rectangles at top of booster)
+  var finY = boosterY + 2;
+  var finPositions = [{x: 14, side: -1}, {x: 58, side: 1}];
+  for (var fi = 0; fi < 2; fi++) {
+    var fin = document.createElementNS(svgNS, 'rect');
+    fin.setAttribute('x', String(finPositions[fi].x));
+    fin.setAttribute('y', String(finY));
+    fin.setAttribute('width', '8');
+    fin.setAttribute('height', '18');
+    fin.setAttribute('rx', '1');
+    fin.setAttribute('fill', '#707078');
+    fin.setAttribute('stroke', 'rgba(0,238,255,0.1)');
+    fin.setAttribute('stroke-width', '0.3');
+    boosterG.appendChild(fin);
+    // Grid pattern on fin
+    for (var gi = 0; gi < 3; gi++) {
+      var gridLine = document.createElementNS(svgNS, 'line');
+      gridLine.setAttribute('x1', String(finPositions[fi].x + 1));
+      gridLine.setAttribute('y1', String(finY + 4 + gi * 5));
+      gridLine.setAttribute('x2', String(finPositions[fi].x + 7));
+      gridLine.setAttribute('y2', String(finY + 4 + gi * 5));
+      gridLine.setAttribute('stroke', 'rgba(0,0,0,0.2)');
+      gridLine.setAttribute('stroke-width', '0.3');
+      boosterG.appendChild(gridLine);
+    }
+  }
+
+  // Hot-stage ring at top of booster
+  var hotRing = document.createElementNS(svgNS, 'rect');
+  hotRing.setAttribute('x', '20');
+  hotRing.setAttribute('y', String(boosterY - 4));
+  hotRing.setAttribute('width', '40');
+  hotRing.setAttribute('height', '6');
+  hotRing.setAttribute('rx', '1');
+  hotRing.setAttribute('fill', '#606068');
+  boosterG.appendChild(hotRing);
+
+  // "SUPER HEAVY" label
+  var boosterLabel = document.createElementNS(svgNS, 'text');
+  boosterLabel.setAttribute('class', 'fp-rocket-stage-label');
+  boosterLabel.setAttribute('x', '40');
+  boosterLabel.setAttribute('y', String(boosterY + boosterH * 0.5));
+  boosterLabel.setAttribute('text-anchor', 'middle');
+  boosterLabel.setAttribute('transform', 'rotate(-90, 40, ' + (boosterY + boosterH * 0.5) + ')');
+  boosterLabel.textContent = 'SUPER HEAVY';
+  boosterG.appendChild(boosterLabel);
+
+  svg.appendChild(boosterG);
+
+  // ── Ship group (top 41.3% of height) ──
+  var shipG = document.createElementNS(svgNS, 'g');
+  shipG.setAttribute('class', 'fp-rocket-stage');
+  shipG.setAttribute('data-stage', 'ship');
+  shipG.style.setProperty('--glow', '#00ff88');
+
+  // Ship body
+  var shipBodyY = svgH * 0.12;
+  var shipBodyH = boosterY - 4 - shipBodyY;
+  var shipRect = document.createElementNS(svgNS, 'rect');
+  shipRect.setAttribute('x', '22');
+  shipRect.setAttribute('y', String(shipBodyY));
+  shipRect.setAttribute('width', '36');
+  shipRect.setAttribute('height', String(shipBodyH));
+  shipRect.setAttribute('rx', '3');
+  shipRect.setAttribute('fill', '#c0c0c8');
+  shipRect.setAttribute('stroke', 'rgba(0,238,255,0.15)');
+  shipRect.setAttribute('stroke-width', '0.5');
+  shipG.appendChild(shipRect);
+
+  // Heat shield (dark side) — half of ship body
+  var heatShield = document.createElementNS(svgNS, 'rect');
+  heatShield.setAttribute('x', '22');
+  heatShield.setAttribute('y', String(shipBodyY));
+  heatShield.setAttribute('width', '18');
+  heatShield.setAttribute('height', String(shipBodyH));
+  heatShield.setAttribute('rx', '3');
+  heatShield.setAttribute('fill', '#333338');
+  heatShield.setAttribute('opacity', '0.5');
+  shipG.appendChild(heatShield);
+
+  // Ship panel seams
+  for (var ssi = 0; ssi < 2; ssi++) {
+    var sSeam = document.createElementNS(svgNS, 'line');
+    sSeam.setAttribute('x1', String(32 + ssi * 16));
+    sSeam.setAttribute('y1', String(shipBodyY + 5));
+    sSeam.setAttribute('x2', String(32 + ssi * 16));
+    sSeam.setAttribute('y2', String(shipBodyY + shipBodyH - 5));
+    sSeam.setAttribute('stroke', 'rgba(0,0,0,0.1)');
+    sSeam.setAttribute('stroke-width', '0.3');
+    shipG.appendChild(sSeam);
+  }
+
+  // Nose cone — triangular top
+  var noseTopY = 8;
+  var noseCone = document.createElementNS(svgNS, 'path');
+  // Rounded nose with bezier curve
+  noseCone.setAttribute('d', 'M 22,' + shipBodyY + ' Q 22,' + (noseTopY + 20) + ' 40,' + noseTopY + ' Q 58,' + (noseTopY + 20) + ' 58,' + shipBodyY + ' Z');
+  noseCone.setAttribute('fill', '#d0d0d8');
+  noseCone.setAttribute('stroke', 'rgba(0,238,255,0.15)');
+  noseCone.setAttribute('stroke-width', '0.5');
+  shipG.appendChild(noseCone);
+
+  // Nose cone heat shield half
+  var noseDark = document.createElementNS(svgNS, 'path');
+  noseDark.setAttribute('d', 'M 22,' + shipBodyY + ' Q 22,' + (noseTopY + 20) + ' 40,' + noseTopY + ' L 40,' + shipBodyY + ' Z');
+  noseDark.setAttribute('fill', '#333338');
+  noseDark.setAttribute('opacity', '0.4');
+  shipG.appendChild(noseDark);
+
+  // Forward flaps (2)
+  var fwdFlapY = shipBodyY + 10;
+  var fwdFlap1 = document.createElementNS(svgNS, 'rect');
+  fwdFlap1.setAttribute('x', '12');
+  fwdFlap1.setAttribute('y', String(fwdFlapY));
+  fwdFlap1.setAttribute('width', '10');
+  fwdFlap1.setAttribute('height', '30');
+  fwdFlap1.setAttribute('rx', '2');
+  fwdFlap1.setAttribute('fill', '#505058');
+  fwdFlap1.setAttribute('transform', 'rotate(-5, 17, ' + (fwdFlapY + 15) + ')');
+  shipG.appendChild(fwdFlap1);
+
+  var fwdFlap2 = document.createElementNS(svgNS, 'rect');
+  fwdFlap2.setAttribute('x', '58');
+  fwdFlap2.setAttribute('y', String(fwdFlapY));
+  fwdFlap2.setAttribute('width', '10');
+  fwdFlap2.setAttribute('height', '30');
+  fwdFlap2.setAttribute('rx', '2');
+  fwdFlap2.setAttribute('fill', '#505058');
+  fwdFlap2.setAttribute('transform', 'rotate(5, 63, ' + (fwdFlapY + 15) + ')');
+  shipG.appendChild(fwdFlap2);
+
+  // Aft flaps (2)
+  var aftFlapY = shipBodyY + shipBodyH - 35;
+  var aftFlap1 = document.createElementNS(svgNS, 'rect');
+  aftFlap1.setAttribute('x', '12');
+  aftFlap1.setAttribute('y', String(aftFlapY));
+  aftFlap1.setAttribute('width', '10');
+  aftFlap1.setAttribute('height', '30');
+  aftFlap1.setAttribute('rx', '2');
+  aftFlap1.setAttribute('fill', '#505058');
+  aftFlap1.setAttribute('transform', 'rotate(-5, 17, ' + (aftFlapY + 15) + ')');
+  shipG.appendChild(aftFlap1);
+
+  var aftFlap2 = document.createElementNS(svgNS, 'rect');
+  aftFlap2.setAttribute('x', '58');
+  aftFlap2.setAttribute('y', String(aftFlapY));
+  aftFlap2.setAttribute('width', '10');
+  aftFlap2.setAttribute('height', '30');
+  aftFlap2.setAttribute('rx', '2');
+  aftFlap2.setAttribute('fill', '#505058');
+  aftFlap2.setAttribute('transform', 'rotate(5, 63, ' + (aftFlapY + 15) + ')');
+  shipG.appendChild(aftFlap2);
+
+  // Ship engines (smaller, at bottom of ship)
+  var shipEngY = shipBodyY + shipBodyH - 2;
+  for (var sei = 0; sei < 3; sei++) {
+    var sNoz = document.createElementNS(svgNS, 'rect');
+    sNoz.setAttribute('x', String(30 + sei * 7));
+    sNoz.setAttribute('y', String(shipEngY));
+    sNoz.setAttribute('width', '3');
+    sNoz.setAttribute('height', '5');
+    sNoz.setAttribute('rx', '0.5');
+    sNoz.setAttribute('fill', '#666');
+    shipG.appendChild(sNoz);
+  }
+
+  // "SHIP" label
+  var shipLabel = document.createElementNS(svgNS, 'text');
+  shipLabel.setAttribute('class', 'fp-rocket-stage-label');
+  shipLabel.setAttribute('x', '40');
+  shipLabel.setAttribute('y', String(shipBodyY + shipBodyH * 0.5));
+  shipLabel.setAttribute('text-anchor', 'middle');
+  shipLabel.setAttribute('transform', 'rotate(-90, 40, ' + (shipBodyY + shipBodyH * 0.5) + ')');
+  shipLabel.textContent = 'SHIP';
+  shipG.appendChild(shipLabel);
+
+  svg.appendChild(shipG);
+
+  panel.innerHTML = '';
+  panel.appendChild(svg);
+}
+
+
+// ── _renderMilestones ────────────────────────────
+function _renderMilestones() {
+  var container = document.getElementById('fp-milestones');
+  if (!container) return;
+  container.innerHTML = '';
+  var milestones = STARSHIP_PROFILE.milestones;
+  var maxAlt = STARSHIP_PROFILE.maxAlt;
+  for (var i = 0; i < milestones.length; i++) {
+    var m = milestones[i];
+    var pct = Math.sqrt(m.alt / maxAlt) * 90 + 5;
+    var side = i % 2 === 0 ? 'left' : 'right';
+    var node = document.createElement('div');
+    node.className = 'fp-milestone fp-milestone-' + side;
+    node.style.bottom = pct + '%';
+    node.dataset.index = String(i);
+    node.innerHTML =
+      '<div class="fp-milestone-dot"></div>' +
+      '<div class="fp-milestone-card">' +
+        '<div class="fp-milestone-label">' + m.label + '</div>' +
+        '<div class="fp-milestone-time">T+' + Math.floor(m.t / 60) + ':' + String(Math.floor(m.t % 60)).padStart(2, '0') + ' | ' + m.alt + ' km</div>' +
+      '</div>';
+    node.addEventListener('click', (function(idx) {
+      return function() {
+        _fpTime = STARSHIP_PROFILE.milestones[idx].t;
+        _fpState = seekToTime(_fpTime, STARSHIP_PROFILE);
+        _updateFP(_fpState);
+        var scrub = document.getElementById('fp-scrub');
+        if (scrub) scrub.value = String(_fpTime);
+      };
+    })(i));
+    container.appendChild(node);
+  }
+}
+
+// ── _updateFP: update all UI from physics state ──
+function _updateFP(state) {
+  if (!state) return;
+  var s = state;
+  var maxAlt = STARSHIP_PROFILE.maxAlt;
+  var milestones = STARSHIP_PROFILE.milestones;
+
+  // Update rocket indicator position (sqrt scale)
+  var rocketDot = document.getElementById('fp-rocket-dot');
+  if (rocketDot) {
+    var altPct = Math.sqrt(Math.min(s.alt, maxAlt) / maxAlt) * 90 + 5;
+    rocketDot.style.bottom = altPct + '%';
+  }
+
+  // Update telemetry values
+  var mins = Math.floor(s.t / 60);
+  var secs = Math.floor(s.t % 60);
+  var timeEl = document.getElementById('fp-t-time');
+  if (timeEl) timeEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+
+  var altEl = document.getElementById('fp-t-alt');
+  if (altEl) altEl.textContent = s.alt < 1000 ? s.alt.toFixed(1) + ' km' : (s.alt / 1000).toFixed(2) + ' Mm';
+
+  var velEl = document.getElementById('fp-t-vel');
+  if (velEl) velEl.textContent = s.vel < 1000 ? s.vel.toFixed(0) + ' m/s' : (s.vel / 1000).toFixed(2) + ' km/s';
+
+  var accelEl = document.getElementById('fp-t-accel');
+  if (accelEl) accelEl.textContent = s.accel.toFixed(1) + ' g';
+
+  var stageEl = document.getElementById('fp-t-stage');
+  if (stageEl) stageEl.textContent = s.stage.toUpperCase();
+
+  // Update scrub bar
+  var scrub = document.getElementById('fp-scrub');
+  if (scrub && !scrub.matches(':active')) {
+    scrub.value = String(Math.floor(s.t));
+  }
+
+  // Check milestones: activate reached ones, update callout
+  var newActiveMilestone = -1;
+  for (var mi = milestones.length - 1; mi >= 0; mi--) {
+    if (s.t >= milestones[mi].t) {
+      newActiveMilestone = mi;
+      break;
+    }
+  }
+
+  // Update milestone DOM nodes
+  var milestoneNodes = document.querySelectorAll('.fp-milestone');
+  for (var mni = 0; mni < milestoneNodes.length; mni++) {
+    var idx = parseInt(milestoneNodes[mni].dataset.index, 10);
+    milestoneNodes[mni].classList.toggle('reached', s.t >= milestones[idx].t);
+    milestoneNodes[mni].classList.toggle('active', idx === newActiveMilestone);
+  }
+
+  // Update callout card if milestone changed
+  if (newActiveMilestone !== _fpActiveMilestone) {
+    _fpActiveMilestone = newActiveMilestone;
+    var labelEl = document.getElementById('fp-callout-label');
+    var timeCallEl = document.getElementById('fp-callout-time');
+    var descEl = document.getElementById('fp-callout-desc');
+    if (newActiveMilestone >= 0) {
+      var cm = milestones[newActiveMilestone];
+      if (labelEl) labelEl.textContent = cm.label;
+      if (timeCallEl) timeCallEl.textContent = 'T+' + Math.floor(cm.t / 60) + ':' + String(Math.floor(cm.t % 60)).padStart(2, '0') + ' | ALT ' + cm.alt + ' km | VEL ' + cm.vel + ' m/s';
+      if (descEl) descEl.textContent = cm.desc;
+    } else {
+      if (labelEl) labelEl.textContent = 'READY';
+      if (timeCallEl) timeCallEl.textContent = 'T-0:10';
+      if (descEl) descEl.textContent = 'Press play to begin the flight profile.';
+    }
+  }
+
+  // Update rocket diagram: highlight active stage, show separation
+  var stageGroups = document.querySelectorAll('.fp-rocket-stage');
+  for (var sgi = 0; sgi < stageGroups.length; sgi++) {
+    var stageId = stageGroups[sgi].dataset.stage;
+    var isBooster = stageId === 'superheavy';
+    var isShip = stageId === 'ship';
+    // Active highlighting
+    if (s.stage === 'booster' || s.stage === 'hot-stage') {
+      stageGroups[sgi].classList.toggle('active', isBooster);
+    } else if (s.stage === 'ship' || s.stage === 'coast') {
+      stageGroups[sgi].classList.toggle('active', isShip);
+    } else if (s.stage === 'orbit') {
+      stageGroups[sgi].classList.toggle('active', isShip);
+    } else {
+      stageGroups[sgi].classList.remove('active');
+    }
+    // Separation visual
+    if (isBooster && (s.stage === 'ship' || s.stage === 'coast' || s.stage === 'orbit' || s.stage === 'booster-return')) {
+      stageGroups[sgi].classList.add('separated');
+    } else {
+      stageGroups[sgi].classList.remove('separated');
+    }
+  }
+
+  // Update stage info panel
+  var stageInfoEl = document.getElementById('fp-stage-info');
+  if (stageInfoEl) {
+    var activeStage = null;
+    for (var asi = 0; asi < STARSHIP_PROFILE.stages.length; asi++) {
+      var stg = STARSHIP_PROFILE.stages[asi];
+      if ((s.stage === 'booster' || s.stage === 'hot-stage') && stg.id === 'superheavy') { activeStage = stg; break; }
+      if ((s.stage === 'ship' || s.stage === 'coast' || s.stage === 'orbit') && stg.id === 'ship') { activeStage = stg; break; }
+    }
+    if (activeStage && activeStage.details) {
+      var detailHTML = '';
+      for (var di = 0; di < activeStage.details.length; di++) {
+        detailHTML += '<div class="fp-stage-detail">' + activeStage.details[di].label + '<span>' + activeStage.details[di].value + '</span></div>';
+      }
+      stageInfoEl.innerHTML = detailHTML;
+    } else {
+      stageInfoEl.innerHTML = '';
+    }
+  }
+}
+
+// ── _fpAnimate: animation loop ───────────────────
+function _fpAnimate(now) {
+  if (!_fpActive) return;
+  requestAnimationFrame(_fpAnimate);
+
+  var dt = Math.min((now - _fpLastT) / 1000, 0.1);
+  _fpLastT = now;
+
+  if (_fpPlaying) {
+    _fpTime += dt * _fpSpeed;
+    if (_fpTime > STARSHIP_PROFILE.maxTime) {
+      _fpTime = STARSHIP_PROFILE.maxTime;
+      _fpPlaying = false;
+      // Remove active class from play button
+      var playBtn = document.getElementById('fp-play-btn');
+      if (playBtn) playBtn.classList.remove('active');
+    }
+    _fpState = seekToTime(_fpTime, STARSHIP_PROFILE);
+    _updateFP(_fpState);
+  }
+}
+
 // ── Event wiring ─────────────────────────────────
 
-// Option button groups (destination, site)
-['sim-dest', 'sim-site'].forEach(function(groupId) {
-  var group = document.getElementById(groupId);
-  if (!group) return;
-  group.addEventListener('click', function(e) {
-    var btn = e.target.closest('.sim-opt-btn');
-    if (!btn) return;
-    group.querySelectorAll('.sim-opt-btn').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    if (groupId === 'sim-site' && _simState && _simState.earth) {
-      _rotateEarthToSite(_simState.earth, btn.dataset.val);
-    }
-    _updateSpecs();
-  });
+// Play button
+document.getElementById('fp-play-btn').addEventListener('click', function() {
+  _fpPlaying = true;
+  this.classList.add('active');
+  var pauseBtn = document.getElementById('fp-pause-btn');
+  if (pauseBtn) pauseBtn.classList.remove('active');
 });
 
-// Sliders
-['sim-payload', 'sim-engines', 'sim-ship-engines'].forEach(function(sliderId) {
-  var slider = document.getElementById(sliderId);
-  if (!slider) return;
-  slider.addEventListener('input', function() { _updateSpecs(); });
-  slider.addEventListener('touchstart', function(e) { e.stopPropagation(); });
+// Pause button
+document.getElementById('fp-pause-btn').addEventListener('click', function() {
+  _fpPlaying = false;
+  this.classList.add('active');
+  var playBtn = document.getElementById('fp-play-btn');
+  if (playBtn) playBtn.classList.remove('active');
 });
 
-// Main buttons
-document.getElementById('sim-launch-btn').addEventListener('click', _startLaunch);
+// Reset button
+document.getElementById('fp-reset-btn').addEventListener('click', function() {
+  _fpTime = 0;
+  _fpPlaying = false;
+  _fpActiveMilestone = -1;
+  _fpState = seekToTime(0, STARSHIP_PROFILE);
+  _updateFP(_fpState);
+  var playBtn = document.getElementById('fp-play-btn');
+  if (playBtn) playBtn.classList.remove('active');
+  var pauseBtn = document.getElementById('fp-pause-btn');
+  if (pauseBtn) pauseBtn.classList.remove('active');
+});
+
+// Speed select
+document.getElementById('fp-speed-select').addEventListener('change', function() {
+  _fpSpeed = parseInt(this.value, 10) || 1;
+});
+
+// Scrub bar
+document.getElementById('fp-scrub').addEventListener('input', function() {
+  _fpTime = parseInt(this.value, 10) || 0;
+  _fpState = seekToTime(_fpTime, STARSHIP_PROFILE);
+  _updateFP(_fpState);
+});
+document.getElementById('fp-scrub').addEventListener('touchstart', function(e) { e.stopPropagation(); });
+
+// Back button
 document.getElementById('sim-back-btn').addEventListener('click', closeLaunchSim);
+
+// Splash sim button
 document.getElementById('splash-sim-btn').addEventListener('click', function(e) {
   e.stopPropagation();
   document.getElementById('splash').classList.add('hidden');
   openLaunchSim();
-});
-
-// Resize handler
-window.addEventListener('resize', function() {
-  // No 3D viewport to resize — image scales via CSS
 });
 document.getElementById('hud-back-btn').addEventListener('click', () => {
   started = false;

@@ -441,83 +441,60 @@
   .welcome-feat{font-size:13px;color:rgba(0,238,255,0.8);line-height:2.2;letter-spacing:0.5px}
   .welcome-hint{font-size:10px;color:rgba(0,238,255,0.3);letter-spacing:3px;text-transform:uppercase;animation:pulse 2s ease-in-out infinite}
 
-/* ── Launch Simulator (Comparison Mode) ── */
-.sim-comparison-body{display:flex;flex:1;overflow:hidden;min-height:0}
-.sim-config-panel{width:310px;flex-shrink:0;overflow-y:auto;border-right:1px solid rgba(0,238,255,0.07);padding:12px 14px}
-.sim-config-panel::-webkit-scrollbar{width:4px}.sim-config-panel::-webkit-scrollbar-thumb{background:rgba(0,238,255,0.15);border-radius:2px}
-.sim-rocket-selector{border:1px solid rgba(0,238,255,0.1);border-radius:4px;padding:10px 12px;margin-bottom:12px}
-.sim-selector-a{border-left:3px solid #0ef}
-.sim-selector-b{border-left:3px solid #f80}
-.sim-selector-label{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;letter-spacing:3px;margin-bottom:10px}
-.sim-selector-a .sim-selector-label{color:#0ef}
-.sim-selector-b .sim-selector-label{color:#f80}
-.sim-shared-config{border:1px solid rgba(0,238,255,0.06);border-radius:4px;padding:10px 12px;margin-bottom:12px}
-.sim-shared-config .sim-selector-label{color:rgba(0,238,255,0.5)}
-.sim-section{margin-bottom:12px}
-.sim-label{font-size:7px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(0,238,255,0.4);margin-bottom:6px}
-.sim-options{display:flex;gap:4px;flex-wrap:wrap}
-.sim-opt-btn{background:rgba(0,238,255,0.03);border:1px solid rgba(0,238,255,0.12);color:rgba(0,238,255,0.6);font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;padding:4px 8px;cursor:pointer;border-radius:2px;transition:all 0.12s;white-space:nowrap}
-.sim-opt-btn:hover{border-color:rgba(0,238,255,0.35);color:rgba(0,238,255,0.85)}
-.sim-opt-btn.active{background:rgba(0,238,255,0.1);border-color:#0ef;color:#0ef}
-.sim-input{width:100%;background:rgba(0,238,255,0.04);border:1px solid rgba(0,238,255,0.18);color:#0ef;font-family:'Share Tech Mono',monospace;font-size:11px;padding:6px 10px;outline:none;border-radius:2px;box-sizing:border-box}
-.sim-input:focus{border-color:rgba(0,238,255,0.5)}
-.sim-launch-btn{display:block;width:100%;padding:12px;background:linear-gradient(135deg,rgba(0,238,255,0.12),rgba(0,128,255,0.12));border:1px solid rgba(0,238,255,0.4);color:#0ef;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;cursor:pointer;border-radius:3px;transition:all 0.2s;text-align:center}
-.sim-launch-btn:hover{background:linear-gradient(135deg,rgba(0,238,255,0.22),rgba(0,128,255,0.22));box-shadow:0 0 30px rgba(0,238,255,0.2)}
-.sim-launch-btn:active{transform:scale(0.98)}
-.sim-launch-btn.counting{animation:launchPulse 0.5s ease-in-out infinite alternate;border-color:#f80;color:#f80;background:rgba(255,136,0,0.1)}
-@keyframes launchPulse{0%{box-shadow:none}100%{box-shadow:0 0 24px rgba(255,136,0,0.3)}}
-.sim-dual-viewport{display:flex;flex:1;min-width:0}
-.sim-viewport-half{flex:1;position:relative;overflow:hidden;background:#010208}
-.sim-viewport-half canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.sim-viewport-divider{width:1px;background:rgba(0,238,255,0.15);flex-shrink:0}
-.sim-rocket-label{position:absolute;top:10px;left:12px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;pointer-events:none;z-index:2}
-.sim-label-a{color:#0ef}
-.sim-label-b{color:#f80}
-.sim-telemetry{position:absolute;top:10px;right:10px;background:rgba(0,8,18,0.85);border:1px solid rgba(0,238,255,0.12);border-radius:3px;padding:8px 10px;backdrop-filter:blur(6px);min-width:140px;z-index:2}
-.sim-telem-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
-.sim-telem-label{font-size:7px;letter-spacing:2px;color:rgba(0,238,255,0.4);text-transform:uppercase}
-.sim-telem-val{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:#0ef}
-.sim-ticker{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,8,18,0.9));padding:10px 14px 8px;pointer-events:none;z-index:2}
-.sim-ticker-text{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,238,255,0.7);letter-spacing:1px;white-space:nowrap;overflow:hidden}
-.sim-status{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(0,238,255,0.4)}
-.sim-visual-panel{flex:1;position:relative;overflow:hidden;background:#010208;display:flex;flex-direction:column;z-index:100}
-.sim-image-container{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.sim-starship-img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:brightness(0.9) contrast(1.1)}
-.sim-img-overlay{position:absolute;inset:0;pointer-events:none;background:transparent;transition:background 1s}
-.sim-img-overlay.launching{background:radial-gradient(ellipse at 50% 80%,rgba(255,140,20,0.15) 0%,transparent 60%);animation:launchGlow 0.5s ease-in-out infinite alternate}
-.sim-img-overlay.orbit{background:radial-gradient(ellipse at 50% 50%,rgba(0,180,255,0.08) 0%,transparent 50%)}
-@keyframes launchGlow{from{opacity:0.6}to{opacity:1}}
-.sim-slider{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:rgba(0,238,255,0.15);border-radius:2px;outline:none;margin:6px 0}
-.sim-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#0ef;cursor:pointer;border:2px solid rgba(0,238,255,0.5)}
-.sim-slider-val{font-family:'Orbitron',sans-serif;font-size:10px;color:#0ef;text-align:right;margin-top:2px}
-.sim-spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.sim-spec{background:rgba(0,238,255,0.03);border:1px solid rgba(0,238,255,0.08);border-radius:2px;padding:6px 8px}
-.sim-spec-label{display:block;font-size:7px;letter-spacing:1.5px;color:rgba(0,238,255,0.4);text-transform:uppercase;margin-bottom:3px}
-.sim-spec-val{display:block;font-family:'Orbitron',sans-serif;font-size:10px;color:#0ef;font-weight:700}
-.sim-winner-badge{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:4px;padding:10px 22px;border-radius:4px;z-index:3;animation:winnerFlash 0.6s ease-in-out 3 alternate;pointer-events:none}
-.sim-winner-badge.show-a{display:block;color:#0ef;border:2px solid #0ef;background:rgba(0,238,255,0.1);box-shadow:0 0 30px rgba(0,238,255,0.3)}
-.sim-winner-badge.show-b{display:block;color:#f80;border:2px solid #f80;background:rgba(255,136,0,0.1);box-shadow:0 0 30px rgba(255,136,0,0.3)}
-@keyframes winnerFlash{from{opacity:0.5;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1.05)}}
-.sim-results-overlay{position:absolute;inset:0;z-index:10;display:none;align-items:center;justify-content:center;background:rgba(0,4,12,0.88);backdrop-filter:blur(6px)}
-.sim-results-overlay.active{display:flex}
-.sim-results-card{background:rgba(0,10,22,0.96);border:1px solid rgba(0,238,255,0.2);border-radius:6px;padding:24px 28px;max-width:560px;width:92%;max-height:80vh;overflow-y:auto}
-.sim-results-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:4px;color:#0ef;text-align:center;margin-bottom:18px}
-.sim-result-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,238,255,0.05)}
-.sim-result-label{flex:1;font-size:10px;color:rgba(255,255,255,0.55)}
-.sim-result-val{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;width:100px;text-align:center}
-.sim-result-val.val-a{color:#0ef}
-.sim-result-val.val-b{color:#f80}
-.sim-result-winner{font-size:9px;width:20px;text-align:center}
-.sim-verdict{text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,0.7);line-height:1.8}
-.sim-verdict strong{color:#0ef}
+/* ── Flight Profile Viewer ── */
+.fp-header{padding:12px 22px;border-bottom:1px solid rgba(0,238,255,0.1);display:flex;align-items:center;gap:16px;flex-shrink:0;position:relative;z-index:5;pointer-events:all;backdrop-filter:blur(8px)}
+.fp-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:5px;color:#0ef;flex:1;text-align:center}
+.fp-controls{display:flex;gap:6px;align-items:center}
+.fp-ctrl-btn{background:rgba(0,238,255,0.06);border:1px solid rgba(0,238,255,0.25);color:#0ef;font-size:14px;width:34px;height:34px;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.fp-ctrl-btn:hover{background:rgba(0,238,255,0.15);border-color:#0ef}
+.fp-ctrl-btn.active{background:rgba(0,238,255,0.2);border-color:#0ef;box-shadow:0 0 10px rgba(0,238,255,0.2)}
+.fp-speed-select{background:rgba(0,238,255,0.06);border:1px solid rgba(0,238,255,0.25);color:#0ef;font-family:'Share Tech Mono',monospace;font-size:11px;padding:4px 8px;border-radius:3px;cursor:pointer;outline:none}
+.fp-body{display:flex;flex:1;overflow:hidden;position:relative;z-index:1}
+.fp-rocket-panel{width:220px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:20px;border-right:1px solid rgba(0,238,255,0.06);position:relative;z-index:2}
+.fp-rocket-svg{width:80px;height:100%}
+.fp-rocket-stage{transition:filter 0.5s,opacity 0.5s,transform 0.8s}
+.fp-rocket-stage.active{filter:drop-shadow(0 0 6px var(--glow,#0ef))}
+.fp-rocket-stage.separated{transform:translateY(15px);opacity:0.3}
+.fp-rocket-stage-label{font-family:'Orbitron',sans-serif;font-size:7px;fill:rgba(0,238,255,0.5);letter-spacing:1px}
+.fp-timeline-panel{flex:1;position:relative;overflow:hidden;background:linear-gradient(to top,rgba(0,20,50,0.3) 0%,rgba(0,5,15,0.1) 50%,rgba(0,0,0,0) 100%);min-width:200px}
+.fp-timeline-line{position:absolute;left:50%;top:5%;bottom:5%;width:2px;background:linear-gradient(to top,rgba(0,238,255,0.4),rgba(0,238,255,0.1));transform:translateX(-50%)}
+.fp-altitude-scale{position:absolute;right:8px;top:5%;bottom:5%;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.fp-altitude-scale span{font-size:8px;color:rgba(0,238,255,0.3);letter-spacing:1px;text-align:right}
+.fp-milestones{position:absolute;left:0;right:0;top:5%;bottom:5%}
+.fp-milestone{position:absolute;display:flex;align-items:center;gap:8px;cursor:pointer;transition:opacity 0.4s;opacity:0.35;width:100%;pointer-events:all}
+.fp-milestone.reached{opacity:1}
+.fp-milestone.active{opacity:1}
+.fp-milestone-left{flex-direction:row-reverse;padding-right:55%}
+.fp-milestone-right{padding-left:55%}
+.fp-milestone-dot{width:10px;height:10px;border-radius:50%;background:rgba(0,238,255,0.3);border:2px solid rgba(0,2,8,0.98);flex-shrink:0;transition:all 0.3s}
+.fp-milestone.reached .fp-milestone-dot{background:#0ef;box-shadow:0 0 8px rgba(0,238,255,0.5)}
+.fp-milestone-card{background:rgba(0,12,25,0.85);border:1px solid rgba(0,238,255,0.1);border-radius:3px;padding:6px 10px;max-width:180px;backdrop-filter:blur(6px)}
+.fp-milestone.active .fp-milestone-card{border-color:#0ef;box-shadow:0 0 12px rgba(0,238,255,0.15)}
+.fp-milestone-label{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:#0ef;letter-spacing:1px}
+.fp-milestone-time{font-size:8px;color:rgba(0,238,255,0.4);margin-top:2px}
+.fp-rocket-indicator{position:absolute;left:50%;transform:translateX(-50%);color:#0ef;font-size:16px;z-index:3;text-shadow:0 0 10px rgba(0,238,255,0.6);transition:bottom 0.3s ease;pointer-events:none}
+.fp-callout-panel{width:300px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(0,238,255,0.06);overflow:hidden;position:relative;z-index:100}
+.fp-hero-img{width:100%;height:200px;object-fit:cover;filter:brightness(0.6) contrast(1.1);border-bottom:1px solid rgba(0,238,255,0.08)}
+.fp-callout-card{padding:16px;flex:1}
+.fp-callout-label{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:#0ef;letter-spacing:2px;margin-bottom:6px}
+.fp-callout-time{font-size:11px;color:rgba(0,238,255,0.5);margin-bottom:10px}
+.fp-callout-desc{font-size:12px;color:rgba(255,255,255,0.7);line-height:1.8}
+.fp-stage-info{padding:12px 16px;border-top:1px solid rgba(0,238,255,0.06)}
+.fp-stage-detail{display:flex;justify-content:space-between;padding:3px 0;font-size:10px;color:rgba(255,255,255,0.5)}
+.fp-stage-detail span{color:#0ef;font-weight:700}
+.fp-scrub-row{padding:8px 22px;border-top:1px solid rgba(0,238,255,0.08);position:relative;z-index:2}
+.fp-scrub{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:rgba(0,238,255,0.15);border-radius:2px;outline:none}
+.fp-scrub::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#0ef;cursor:pointer;border:2px solid rgba(0,238,255,0.5)}
+.fp-telemetry{display:flex;justify-content:center;gap:24px;padding:10px 22px;border-top:1px solid rgba(0,238,255,0.08);flex-shrink:0;position:relative;z-index:2}
+.fp-telem{display:flex;gap:6px;align-items:baseline}
+.fp-telem-lbl{font-size:8px;letter-spacing:2px;color:rgba(0,238,255,0.4);text-transform:uppercase}
+.fp-telem-val{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#0ef}
 
-@media (max-width: 768px) {
-  .sim-comparison-body{flex-direction:column}
-  .sim-config-panel{width:100%;max-height:40vh;border-right:none;border-bottom:1px solid rgba(0,238,255,0.07);padding:10px}
-  .sim-dual-viewport{flex-direction:column;min-height:50vh}
-  .sim-viewport-half{min-height:25vh}
-  .sim-viewport-divider{width:auto;height:1px;background:rgba(0,238,255,0.15)}
-  .sim-telemetry{min-width:110px;padding:6px 8px}
-  .sim-telem-val{font-size:9px}
-  .sim-rocket-label{font-size:8px}
+@media(max-width:768px){
+  .fp-body{flex-direction:column}
+  .fp-rocket-panel{width:100%;height:80px;flex-direction:row;border-right:none;border-bottom:1px solid rgba(0,238,255,0.06);padding:8px}
+  .fp-callout-panel{width:100%;max-height:200px}
+  .fp-hero-img{height:100px}
+  .fp-telemetry{flex-wrap:wrap;gap:12px}
+  .fp-controls{flex-wrap:wrap}
 }

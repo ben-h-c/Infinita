@@ -329,86 +329,55 @@ function App() {
       {/* Launch Simulator Overlay */}
       <div id="launch-sim" className="lh-overlay">
         <div className="matrix-rain" id="matrix-rain"></div>
-        <div className="lh-header">
+        <div className="fp-header">
           <button className="lh-back-btn" id="sim-back-btn">{'\u2190'} BACK</button>
-          <div className="lh-title">STARSHIP LAUNCH SIMULATOR</div>
-          <div className="sim-status" id="sim-status">CONFIGURE LAUNCH</div>
+          <div className="fp-title">STARSHIP FLIGHT PROFILE</div>
+          <div className="fp-controls">
+            <button className="fp-ctrl-btn" id="fp-play-btn">{'\u25B6'}</button>
+            <button className="fp-ctrl-btn" id="fp-pause-btn">{'\u23F8'}</button>
+            <select className="fp-speed-select" id="fp-speed-select">
+              <option value="1">1x</option>
+              <option value="2">2x</option>
+              <option value="5">5x</option>
+              <option value="10">10x</option>
+            </select>
+            <button className="fp-ctrl-btn" id="fp-reset-btn">{'\u21BA'}</button>
+          </div>
         </div>
-        <div className="sim-comparison-body">
-          <div className="sim-config-panel" id="sim-config">
-            <div className="sim-rocket-selector sim-selector-a">
-              <div className="sim-selector-label">MISSION PROFILE</div>
-
-              <div className="sim-section">
-                <div className="sim-label">PAYLOAD MASS (tonnes)</div>
-                <input type="range" className="sim-slider" id="sim-payload" min="0" max="150" defaultValue="50" />
-                <div className="sim-slider-val" id="sim-payload-val">50 t</div>
-              </div>
-
-              <div className="sim-section">
-                <div className="sim-label">DESTINATION</div>
-                <div className="sim-options" id="sim-dest">
-                  <button className="sim-opt-btn active" data-val="LEO">LEO (200 km)</button>
-                  <button className="sim-opt-btn" data-val="GTO">GTO</button>
-                  <button className="sim-opt-btn" data-val="Moon">Moon</button>
-                  <button className="sim-opt-btn" data-val="Mars">Mars</button>
-                </div>
-              </div>
-
-              <div className="sim-section">
-                <div className="sim-label">LAUNCH SITE</div>
-                <div className="sim-options" id="sim-site">
-                  <button className="sim-opt-btn active" data-val="Boca">Starbase, TX</button>
-                  <button className="sim-opt-btn" data-val="KSC">Kennedy Space Center</button>
-                </div>
-              </div>
-
-              <div className="sim-section">
-                <div className="sim-label">RAPTOR ENGINE COUNT (BOOSTER)</div>
-                <input type="range" className="sim-slider" id="sim-engines" min="20" max="33" defaultValue="33" />
-                <div className="sim-slider-val" id="sim-engines-val">33 engines</div>
-              </div>
-
-              <div className="sim-section">
-                <div className="sim-label">SHIP RAPTOR COUNT</div>
-                <input type="range" className="sim-slider" id="sim-ship-engines" min="3" max="6" defaultValue="6" />
-                <div className="sim-slider-val" id="sim-ship-engines-val">6 engines (3 sea-level + 3 vacuum)</div>
-              </div>
+        <div className="fp-body">
+          <div className="fp-rocket-panel" id="fp-rocket-panel"></div>
+          <div className="fp-timeline-panel" id="fp-timeline-panel">
+            <div className="fp-altitude-scale">
+              <span style={{bottom:'0%'}}>0 km</span>
+              <span style={{bottom:'5%'}}>10 km</span>
+              <span style={{bottom:'25%'}}>50 km</span>
+              <span style={{bottom:'50%'}}>100 km</span>
+              <span style={{bottom:'75%'}}>150 km</span>
+              <span style={{bottom:'100%'}}>200 km</span>
             </div>
-
-            <div className="sim-shared-config">
-              <div className="sim-selector-label">VEHICLE SPECS (computed)</div>
-              <div className="sim-spec-grid" id="sim-specs">
-                <div className="sim-spec"><span className="sim-spec-label">Total Height</span><span className="sim-spec-val">121 m</span></div>
-                <div className="sim-spec"><span className="sim-spec-label">Liftoff Mass</span><span className="sim-spec-val">5,000 t</span></div>
-                <div className="sim-spec"><span className="sim-spec-label">Booster Thrust</span><span className="sim-spec-val">74,400 kN</span></div>
-                <div className="sim-spec"><span className="sim-spec-label">Ship Thrust</span><span className="sim-spec-val">14,700 kN</span></div>
-                <div className="sim-spec"><span className="sim-spec-label">Thrust-to-Weight</span><span className="sim-spec-val">1.52</span></div>
-                <div className="sim-spec"><span className="sim-spec-label">Delta-V Budget</span><span className="sim-spec-val">~9.5 km/s</span></div>
-              </div>
-            </div>
-
-            <button className="sim-launch-btn" id="sim-launch-btn">INITIATE LAUNCH SEQUENCE</button>
+            <div className="fp-timeline-line"></div>
+            <div className="fp-milestones" id="fp-milestones"></div>
+            <div className="fp-rocket-indicator" id="fp-rocket-dot">{'\u25B2'}</div>
           </div>
-
-          <div className="sim-visual-panel">
-            <div className="sim-image-container">
-              <img src="/Infinita/images/starship.jpg" alt="SpaceX Starship" className="sim-starship-img" id="sim-starship-img" />
-              <div className="sim-img-overlay" id="sim-img-overlay"></div>
+          <div className="fp-callout-panel" id="fp-callout-panel">
+            <img src="/Infinita/images/starship.jpg" alt="Starship" className="fp-hero-img" />
+            <div className="fp-callout-card" id="fp-callout">
+              <div className="fp-callout-label" id="fp-callout-label">READY</div>
+              <div className="fp-callout-time" id="fp-callout-time">T-0:10</div>
+              <div className="fp-callout-desc" id="fp-callout-desc">Press play to begin the flight profile.</div>
             </div>
-            <div className="sim-telemetry" id="sim-telemetry-a">
-              <div className="sim-telem-row"><span className="sim-telem-label">T+</span><span className="sim-telem-val" id="sim-t-time">00:00</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">ALT</span><span className="sim-telem-val" id="sim-t-alt">0 km</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">VEL</span><span className="sim-telem-val" id="sim-t-vel">0 m/s</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">ACCEL</span><span className="sim-telem-val" id="sim-t-accel">0.0 g</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">DOWNRANGE</span><span className="sim-telem-val" id="sim-t-downrange">0 km</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">BOOSTER FUEL</span><span className="sim-telem-val" id="sim-t-bfuel">100%</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">SHIP FUEL</span><span className="sim-telem-val" id="sim-t-sfuel">100%</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">STAGE</span><span className="sim-telem-val" id="sim-t-stage">BOOSTER</span></div>
-              <div className="sim-telem-row"><span className="sim-telem-label">STATUS</span><span className="sim-telem-val" id="sim-t-status">PRE-LAUNCH</span></div>
-            </div>
-            <div className="sim-ticker" id="sim-ticker-a"><div className="sim-ticker-text" id="sim-ticker-text"></div></div>
+            <div className="fp-stage-info" id="fp-stage-info"></div>
           </div>
+        </div>
+        <div className="fp-scrub-row">
+          <input type="range" className="fp-scrub" id="fp-scrub" min="0" max="540" defaultValue="0" step="1" />
+        </div>
+        <div className="fp-telemetry" id="fp-telemetry">
+          <div className="fp-telem"><span className="fp-telem-lbl">T+</span><span className="fp-telem-val" id="fp-t-time">00:00</span></div>
+          <div className="fp-telem"><span className="fp-telem-lbl">ALT</span><span className="fp-telem-val" id="fp-t-alt">0 km</span></div>
+          <div className="fp-telem"><span className="fp-telem-lbl">VEL</span><span className="fp-telem-val" id="fp-t-vel">0 m/s</span></div>
+          <div className="fp-telem"><span className="fp-telem-lbl">ACCEL</span><span className="fp-telem-val" id="fp-t-accel">0 g</span></div>
+          <div className="fp-telem"><span className="fp-telem-lbl">STAGE</span><span className="fp-telem-val" id="fp-t-stage">BOOSTER</span></div>
         </div>
       </div>
 
