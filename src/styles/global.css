@@ -255,7 +255,7 @@
   .lh-company-stat span{color:#0ef;font-weight:700}
 
   .lh-globe-container{width:100%;max-width:500px;height:300px;margin:0 auto;position:relative;border-radius:6px;overflow:hidden;background:#010208}
-  #earth-canvas{width:100%;height:100%;display:block}
+  #earth-canvas{width:100%!important;height:100%!important;display:block;position:static!important;top:auto!important;left:auto!important}
 
   .lh-timeline{display:flex;flex-direction:column;gap:0}
   .lh-timeline-item{display:flex;gap:14px;padding:12px 0;border-left:2px solid rgba(0,238,255,0.15);margin-left:8px;padding-left:18px;position:relative}
