@@ -50,7 +50,7 @@
 
   .nearest-body{padding:8px 12px;background:rgba(0,238,255,0.04);border-left:2px solid rgba(0,238,255,0.3);margin-top:6px}
 
-  .matrix-rain{position:absolute;top:200px;left:16px;width:190px;bottom:180px;pointer-events:none;overflow:hidden;opacity:0.7;z-index:1;display:flex;flex-direction:row;gap:1px}
+  .matrix-rain{position:absolute;top:250px;left:16px;width:160px;bottom:180px;pointer-events:none;overflow:hidden;opacity:0.7;z-index:1;display:flex;flex-direction:row;gap:1px}
   .matrix-col{flex:1;overflow:hidden;position:relative}
   .matrix-col-inner{display:flex;flex-direction:column;align-items:center;animation:matrixFall var(--dur) linear infinite;position:absolute;top:0;left:0;right:0}
   .matrix-col-inner span{display:block;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.4;color:#39ff14;text-align:center;text-shadow:0 0 6px rgba(57,255,20,0.6)}
