@@ -49,6 +49,18 @@
   @keyframes hudTicker{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
 
   .nearest-body{padding:8px 12px;background:rgba(0,238,255,0.04);border-left:2px solid rgba(0,238,255,0.3);margin-top:6px}
+
+  .trivia-box{margin-top:6px;background:rgba(0,15,30,0.6);border:1px solid rgba(0,238,255,0.1);border-radius:3px;overflow:hidden;pointer-events:all}
+  .trivia-header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;cursor:pointer;user-select:none;transition:background 0.15s}
+  .trivia-header:hover{background:rgba(0,238,255,0.04)}
+  .trivia-title{font-size:9px;letter-spacing:2px;color:rgba(0,238,255,0.5);text-transform:uppercase}
+  .trivia-chevron{font-size:9px;color:rgba(0,238,255,0.3);transition:transform 0.3s}
+  .trivia-box.collapsed .trivia-chevron{transform:rotate(-90deg)}
+  .trivia-body{padding:8px 10px;transition:max-height 0.35s ease,opacity 0.25s;max-height:200px;opacity:1;overflow:hidden}
+  .trivia-box.collapsed .trivia-body{max-height:0;opacity:0;padding:0 10px}
+  .trivia-question{font-size:11px;color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:6px}
+  .trivia-answer{font-size:11px;color:#0ef;line-height:1.6;opacity:0;transition:opacity 0.5s}
+  .trivia-answer.show{opacity:1}
   .nearest-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700}
   .nearest-info{font-size:10px;opacity:0.85;margin-top:2px}
 

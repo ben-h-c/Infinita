@@ -39,12 +39,15 @@ scene.fog = new THREE.FogExp2(0x000005, 0.0008);
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.0001, 50000);
 camera.position.set(0, 1.5, 4);
 
-const ambientLight = new THREE.AmbientLight(0x223344, 0.55);
+const ambientLight = new THREE.AmbientLight(0x334455, 0.7);
 scene.add(ambientLight);
-// Fill light from opposite side of sun to soften shadows on dark sides
-const fillLight = new THREE.DirectionalLight(0x334466, 0.3);
+// Fill lights to illuminate dark sides of outer planets
+const fillLight = new THREE.DirectionalLight(0x445577, 0.45);
 fillLight.position.set(-5, 2, -3);
 scene.add(fillLight);
+const fillLight2 = new THREE.DirectionalLight(0x334466, 0.3);
+fillLight2.position.set(0, -3, 5);
+scene.add(fillLight2);
 
 // ═══════════════════════════════════════════════
 //  SUN
@@ -95,7 +98,7 @@ PLANETS.forEach(p => {
     color: p.color,
     roughness: 0.7,
     metalness: 0.1,
-    emissive: new THREE.Color(p.color).multiplyScalar(0.05)
+    emissive: new THREE.Color(p.color).multiplyScalar(p.a > 5 ? 0.12 : 0.05)
   });
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);
@@ -2273,6 +2276,85 @@ function _updateTicker(dt) {
 }
 
 // ═══════════════════════════════════════════════
+//  SPACE TRIVIA
+// ═══════════════════════════════════════════════
+const _TRIVIA = [
+  { q: "How long does it take sunlight to reach Earth?", a: "About 8 minutes and 20 seconds." },
+  { q: "What is the hottest planet in our solar system?", a: "Venus — at 465°C (869°F), hotter than Mercury despite being farther from the Sun." },
+  { q: "How many Earths could fit inside Jupiter?", a: "About 1,300. Jupiter's volume is massive." },
+  { q: "What is a neutron star made of?", a: "Almost entirely neutrons — so dense that a teaspoon weighs about 6 billion tons." },
+  { q: "How fast does the ISS orbit Earth?", a: "About 28,000 km/h (17,500 mph) — it circles Earth every 90 minutes." },
+  { q: "Which planet has the shortest day?", a: "Jupiter — it rotates once every 9 hours 56 minutes." },
+  { q: "How old is the universe?", a: "Approximately 13.8 billion years old, based on cosmic microwave background data." },
+  { q: "What causes Saturn's rings?", a: "Billions of particles of ice and rock, ranging from tiny grains to house-sized chunks." },
+  { q: "Can you hear sound in space?", a: "No — space is a near-perfect vacuum with no medium for sound waves to travel through." },
+  { q: "What is the Great Red Spot?", a: "A massive storm on Jupiter that has been raging for at least 350 years. It's larger than Earth." },
+  { q: "How far is the nearest star (other than the Sun)?", a: "Proxima Centauri — about 4.24 light-years away, or 40 trillion km." },
+  { q: "What is a light-year?", a: "The distance light travels in one year: about 9.46 trillion kilometers." },
+  { q: "Which planet rotates on its side?", a: "Uranus — it's tilted 98° from its orbital plane, possibly from an ancient collision." },
+  { q: "How many moons does Mars have?", a: "Two: Phobos and Deimos. Both are small and irregularly shaped." },
+  { q: "What is the largest volcano in the solar system?", a: "Olympus Mons on Mars — 21.9 km tall, nearly 3× the height of Mount Everest." },
+  { q: "What percentage of the universe is dark matter?", a: "About 27%. Dark energy makes up 68%. Normal matter is only ~5%." },
+  { q: "What is the Karman line?", a: "The boundary of space at 100 km altitude, internationally recognized as where space begins." },
+  { q: "How long would it take to drive to the Moon?", a: "At highway speed (100 km/h), about 160 days non-stop." },
+  { q: "What is the largest known structure in the universe?", a: "The Hercules–Corona Borealis Great Wall — about 10 billion light-years across." },
+  { q: "Why is Mars red?", a: "Iron oxide (rust) in the soil and dust gives Mars its reddish appearance." },
+  { q: "How many galaxies are in the observable universe?", a: "An estimated 2 trillion (2,000,000,000,000) galaxies." },
+  { q: "What was the first animal sent to space?", a: "Fruit flies in 1947 (V-2 rocket). Laika the dog orbited Earth in 1957." },
+  { q: "How long is a day on Venus?", a: "243 Earth days — longer than its year (225 Earth days). Venus also rotates backward." },
+  { q: "What is the coldest place in the solar system?", a: "Triton (Neptune's moon) at −235°C, or possibly permanently shadowed lunar craters." },
+  { q: "What is the fastest human-made object?", a: "Parker Solar Probe — reached 635,266 km/h (0.05% the speed of light) in 2024." },
+  { q: "How much would you weigh on the Moon?", a: "About 1/6 of your Earth weight. A 180 lb person would weigh 30 lbs." },
+  { q: "What is a pulsar?", a: "A rapidly spinning neutron star that emits beams of radiation like a cosmic lighthouse." },
+  { q: "How big is the observable universe?", a: "About 93 billion light-years in diameter." },
+  { q: "What is the Oort Cloud?", a: "A theoretical shell of icy objects surrounding our solar system, up to 2 light-years away." },
+  { q: "Which Apollo mission had the famous 'Houston, we've had a problem'?", a: "Apollo 13, in April 1970. The crew survived despite an oxygen tank explosion." },
+];
+
+let _triviaIdx = Math.floor(Math.random() * _TRIVIA.length);
+let _triviaTimer = 0;
+let _triviaPhase = 'question'; // question → answer → pause → next
+const _TRIVIA_Q_TIME = 5;   // show question for 5s
+const _TRIVIA_A_TIME = 7;   // show answer for 7s
+let _triviaCollapsed = false;
+
+// Init trivia
+document.getElementById('trivia-toggle').addEventListener('click', () => {
+  _triviaCollapsed = !_triviaCollapsed;
+  document.getElementById('trivia-box').classList.toggle('collapsed', _triviaCollapsed);
+});
+// Show first question
+(function _initTrivia() {
+  const qEl = document.getElementById('trivia-question');
+  const aEl = document.getElementById('trivia-answer');
+  if (qEl) qEl.textContent = '❓ ' + _TRIVIA[_triviaIdx].q;
+  if (aEl) { aEl.textContent = _TRIVIA[_triviaIdx].a; aEl.classList.remove('show'); }
+})();
+
+function _updateTrivia(dt) {
+  if (_triviaCollapsed) return;
+  _triviaTimer += dt;
+  const qEl = document.getElementById('trivia-question');
+  const aEl = document.getElementById('trivia-answer');
+  if (!qEl || !aEl) return;
+
+  if (_triviaPhase === 'question' && _triviaTimer >= _TRIVIA_Q_TIME) {
+    // Reveal answer
+    _triviaPhase = 'answer';
+    _triviaTimer = 0;
+    aEl.classList.add('show');
+  } else if (_triviaPhase === 'answer' && _triviaTimer >= _TRIVIA_A_TIME) {
+    // Next question
+    _triviaPhase = 'question';
+    _triviaTimer = 0;
+    _triviaIdx = (_triviaIdx + 1) % _TRIVIA.length;
+    qEl.textContent = '❓ ' + _TRIVIA[_triviaIdx].q;
+    aEl.textContent = _TRIVIA[_triviaIdx].a;
+    aEl.classList.remove('show');
+  }
+}
+
+// ═══════════════════════════════════════════════
 //  ASTRO REPORT
 // ═══════════════════════════════════════════════
 function generateMissionReport() {
@@ -3528,6 +3610,7 @@ function animate(now) {
   updateHUD();
   tickFacts(dt);
   _updateTicker(dt);
+  _updateTrivia(dt);
   updateLabels();
   renderer.render(scene, camera);
 }

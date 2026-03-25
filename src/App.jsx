@@ -61,6 +61,16 @@ function App() {
             <div className="nearest-name" id="hud-nearest-name">Sun</div>
             <div className="nearest-info" id="hud-nearest-info">0 AU</div>
           </div>
+          <div className="trivia-box" id="trivia-box">
+            <div className="trivia-header" id="trivia-toggle">
+              <span className="trivia-title">{'\u2728'} Space Trivia</span>
+              <span className="trivia-chevron" id="trivia-chevron">{'\u25BC'}</span>
+            </div>
+            <div className="trivia-body" id="trivia-body">
+              <div className="trivia-question" id="trivia-question"></div>
+              <div className="trivia-answer" id="trivia-answer"></div>
+            </div>
+          </div>
         </div>
 
         <div className="hud-tr">
