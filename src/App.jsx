@@ -181,6 +181,7 @@ function App() {
           </div>
           <div className="travel-engage-row">
             <button className="travel-engage-btn" id="travel-engage-btn" disabled>ENGAGE</button>
+            <button className="travel-engage-btn travel-instant-btn" id="travel-instant-btn" disabled>INSTANT</button>
           </div>
           <div className="travel-panel-footer">T / ESC to close {'\u00A0'}{'\u00B7'}{'\u00A0'} ESC to abort during flight</div>
         </div>

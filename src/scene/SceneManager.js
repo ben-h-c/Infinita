@@ -1500,6 +1500,7 @@ function setTravelDest(dest) {
   document.getElementById('travel-dest-results').innerHTML = '';
   document.getElementById('travel-dest-input').value = '';
   document.getElementById('travel-engage-btn').disabled = false;
+  document.getElementById('travel-instant-btn').disabled = false;
 }
 
 // Travel destination search (reuses SIMBAD search)
@@ -1569,6 +1570,22 @@ document.getElementById('travel-engage-btn').addEventListener('click', () => {
   travelSpeed  = 0;
   document.getElementById('travel-hud').classList.add('active');
   document.getElementById('travel-hud-dest').textContent = '→ ' + travelDest.name.toUpperCase();
+});
+document.getElementById('travel-instant-btn').addEventListener('click', () => {
+  if (!travelDest) return;
+  closeTravelPanel();
+  // Switch scale
+  if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
+    currentScale = travelDest.scaleLevel; applyScale();
+  }
+  // Teleport camera directly to viewing position
+  const objR = travelDest.radius || 0.05;
+  const stopR = Math.max(objR * 4, objR * 6);
+  const dir = new THREE.Vector3().subVectors(travelDest.position, camera.position).normalize();
+  camera.position.copy(travelDest.position).addScaledVector(dir, -stopR);
+  // Face the destination
+  yaw = Math.atan2(-dir.x, -dir.z);
+  pitch = Math.asin(Math.max(-1, Math.min(1, dir.y)));
 });
 document.getElementById('travel-abort-btn').addEventListener('click', abortTravel);
 
