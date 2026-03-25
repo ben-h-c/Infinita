@@ -10,6 +10,8 @@ import { initUFO, spawnUFO, updateUFO } from './ufo.js';
 import { initWarp, renderWarp, hideWarp } from './warpEffect.js';
 import { initComets, updateComets } from './comets.js';
 import { buildRocket } from './rocketModels.js';
+import { ensureLoaded, fetchGaiaStars, fetchNearbyGalaxies } from '../data/catalogManager.js';
+import { DEEP_SKY_OBJECTS } from '../data/messierNGC.js';
 
 export function init(container) {
 'use strict';
@@ -652,9 +654,140 @@ async function fetchExoplanets() {
   }
 }
 
+// ── Deep-sky objects (Messier/NGC) — loaded at init, shown at scale 3 ──
+const deepSkyMeshes = [];
+let _deepSkyLoaded = false;
+
+function loadDeepSkyObjects() {
+  if (_deepSkyLoaded) return;
+  _deepSkyLoaded = true;
+  const typeColors = {
+    nebula: 0x6688ff, globular: 0xffaa44, open_cluster: 0xffdd77,
+    planetary_nebula: 0x44ffaa, snr: 0xff5533, galaxy: 0x8899ff
+  };
+  const typeLabels = {
+    nebula: 'Nebula', globular: 'Globular Cluster', open_cluster: 'Open Cluster',
+    planetary_nebula: 'Planetary Nebula', snr: 'Supernova Remnant', galaxy: 'Galaxy'
+  };
+
+  DEEP_SKY_OBJECTS.forEach(obj => {
+    const distAU = obj.dist * 63241;
+    const pos = raDecToVec3(obj.ra, obj.dec, distAU);
+    const col = typeColors[obj.type] || 0xaaaaff;
+    const r = obj.type === 'galaxy' ? 8e8 : 2500;
+
+    // Glow sprite for each object
+    const sc = document.createElement('canvas'); sc.width = 64; sc.height = 64;
+    const sctx = sc.getContext('2d');
+    const sg = sctx.createRadialGradient(32,32,0,32,32,32);
+    const c3 = new THREE.Color(col);
+    sg.addColorStop(0, `rgba(${(c3.r*255)|0},${(c3.g*255)|0},${(c3.b*255)|0},0.9)`);
+    sg.addColorStop(0.3, `rgba(${(c3.r*255)|0},${(c3.g*255)|0},${(c3.b*255)|0},0.35)`);
+    sg.addColorStop(1, 'rgba(0,0,0,0)');
+    sctx.fillStyle = sg; sctx.fillRect(0,0,64,64);
+
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(sc), blending: THREE.AdditiveBlending,
+      transparent: true, depthWrite: false
+    }));
+    sprite.position.copy(pos);
+    sprite.scale.setScalar(r * 0.5);
+    sprite.visible = (currentScale === 3);
+    scene.add(sprite);
+    deepSkyMeshes.push(sprite);
+
+    const displayName = obj.altName ? `${obj.name} ${obj.altName}` : obj.name;
+    const distLY = obj.dist;
+
+    // Label only brighter objects (mag < 9)
+    if (obj.mag < 9) {
+      labelsList.push({ el: createLabel(displayName), mesh: sprite, scaleLevel: obj.type === 'galaxy' ? 4 : 3 });
+    }
+    searchableObjects.push({ name: displayName, distLY, typeLabel: typeLabels[obj.type] || 'Deep Sky', mesh: sprite });
+  });
+}
+
+// ── Gaia stars — loaded lazily on first enter of scale 2 ──
+let _gaiaLoaded = false;
+function loadGaiaStars() {
+  if (_gaiaLoaded) return;
+  _gaiaLoaded = true;
+  ensureLoaded('gaiaStars', fetchGaiaStars, (stars) => {
+    if (!stars || !stars.length) return;
+    stars.forEach(s => {
+      const col = tempToColor(s.temp || 5778);
+      const r = Math.max(0.015, 0.08 * Math.pow(10, -(s.mag || 4) / 5));
+      const geo = new THREE.SphereGeometry(r, 12, 12);
+      const mat = new THREE.MeshBasicMaterial({ color: col });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(raDecToVec3(s.ra, s.dec, s.distAU));
+      mesh.visible = (currentScale === 2);
+      mesh.userData = { name: 'Gaia ' + (s.sourceId || '').toString().slice(-6), distLY: s.distLY, temp: s.temp, type: 'star' };
+      scene.add(mesh);
+      liveStarMeshes.push(mesh);
+
+      // Glow sprite
+      const gc = document.createElement('canvas'); gc.width = 32; gc.height = 32;
+      const gctx = gc.getContext('2d'), gg = gctx.createRadialGradient(16,16,0,16,16,16);
+      const gcol = `${(col.r*255)|0},${(col.g*255)|0},${(col.b*255)|0}`;
+      gg.addColorStop(0,`rgba(${gcol},0.7)`); gg.addColorStop(0.3,`rgba(${gcol},0.25)`); gg.addColorStop(1,'rgba(0,0,0,0)');
+      gctx.fillStyle = gg; gctx.fillRect(0,0,32,32);
+      const gSp = new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(gc),blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));
+      gSp.scale.setScalar(r * 6);
+      mesh.add(gSp);
+
+      // Only label bright stars
+      if ((s.mag || 99) < 3.5) {
+        labelsList.push({ el: createLabel(mesh.userData.name), mesh, scaleLevel: 2 });
+      }
+    });
+    console.log(`Loaded ${stars.length} Gaia stars`);
+  });
+}
+
+// ── Nearby galaxies — loaded lazily on first enter of scale 4 ──
+let _galaxiesLoaded = false;
+const galaxyCatalogMeshes = [];
+function loadNearbyGalaxies() {
+  if (_galaxiesLoaded) return;
+  _galaxiesLoaded = true;
+  ensureLoaded('nearbyGalaxies', fetchNearbyGalaxies, (galaxies) => {
+    if (!galaxies || !galaxies.length) return;
+    galaxies.forEach(g => {
+      const pos = raDecToVec3(g.ra, g.dec, g.distAU);
+      // Galaxy sprite
+      const gc = document.createElement('canvas'); gc.width = 64; gc.height = 64;
+      const gctx = gc.getContext('2d'), gg = gctx.createRadialGradient(32,32,0,32,32,32);
+      // Color by morphological type: elliptical=warm, spiral=blue-white, irregular=pale
+      const isElliptical = (g.morphType || 0) < 0;
+      const gCol = isElliptical ? '255,220,150' : '150,180,255';
+      gg.addColorStop(0, `rgba(${gCol},0.8)`); gg.addColorStop(0.3, `rgba(${gCol},0.3)`); gg.addColorStop(1, 'rgba(0,0,0,0)');
+      gctx.fillStyle = gg; gctx.fillRect(0,0,64,64);
+
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(gc), blending: THREE.AdditiveBlending,
+        transparent: true, depthWrite: false
+      }));
+      sprite.position.copy(pos);
+      sprite.scale.setScalar(8e8 * 0.4);
+      sprite.visible = (currentScale === 4);
+      scene.add(sprite);
+      galaxyCatalogMeshes.push(sprite);
+
+      // Label brighter galaxies
+      if ((g.mag || 99) < 12) {
+        labelsList.push({ el: createLabel(g.name), mesh: sprite, scaleLevel: 4 });
+      }
+      searchableObjects.push({ name: g.name, distLY: g.distLY, typeLabel: 'Galaxy', mesh: sprite });
+    });
+    console.log(`Loaded ${galaxies.length} nearby galaxies`);
+  });
+}
+
 function loadExternalData() {
-  fetchRealStars();
-  fetchExoplanets();
+  fetchRealStars(); // SIMBAD nearby stars
+  fetchExoplanets(); // NASA exoplanet archive
+  loadDeepSkyObjects(); // Messier/NGC (immediate, no network)
 }
 
 // ═══════════════════════════════════════════════
@@ -1692,10 +1825,16 @@ function applyScale() {
   namedStarMeshes.forEach(m => m.visible = level === 2);
   liveStarMeshes.forEach(m => m.visible = level === 2);
   exoplanetMarkers.forEach(m => m.visible = level === 2);
+  deepSkyMeshes.forEach(m => m.visible = level === 3);
   galaxyGroup.visible = level === 3;
+  galaxyCatalogMeshes.forEach(m => m.visible = level === 4);
   cosmicGroup.visible = level === 4;
   lightSphere.visible = level === 1;
   _bgRefObjects.forEach(o => { o.marker.visible = level === o.scale; });
+
+  // Lazy-load catalogs for the new scale level
+  if (level === 2) loadGaiaStars();
+  if (level === 4) loadNearbyGalaxies();
 
   // Adjust camera & fog based on scale
   if (level === 0) {
