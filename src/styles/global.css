@@ -1,6 +1,6 @@
   *{margin:0;padding:0;box-sizing:border-box}
   body{overflow:hidden;background:#000;font-family:'Share Tech Mono',monospace;color:#0ef;user-select:none;touch-action:none;-webkit-touch-callout:none}
-  canvas{display:block;position:fixed;top:0;left:0;touch-action:none}
+  #canvas-container canvas{display:block;position:fixed;top:0;left:0;touch-action:none}
 
   #splash{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#020a14 0%,#000 70%);cursor:pointer;transition:opacity 0.8s}
   #splash.hidden{opacity:0;pointer-events:none;visibility:hidden}
@@ -51,7 +51,7 @@
   .nearest-body{padding:8px 12px;background:rgba(0,238,255,0.04);border-left:2px solid rgba(0,238,255,0.3);margin-top:6px}
 
   .matrix-rain{position:absolute;top:180px;left:16px;width:200px;bottom:160px;pointer-events:none;overflow:hidden;opacity:0.7;z-index:1}
-  .matrix-rain canvas{width:100%!important;height:100%!important;display:block;position:static!important;top:auto!important;left:auto!important}
+  .matrix-rain canvas{width:100%;height:100%;display:block}
 
   #trivia-panel{position:fixed;right:16px;bottom:16px;z-index:10;pointer-events:all;width:272px}
   #trivia-panel .trivia-question{font-size:11px;color:rgba(255,255,255,0.78);line-height:1.7;margin-bottom:8px;white-space:normal;word-wrap:break-word}
@@ -270,7 +270,7 @@
   .lh-globe-wrapper{flex:1;max-width:480px}
   .lh-globe-label{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;letter-spacing:4px;color:rgba(0,238,255,0.75);text-align:center;margin-bottom:10px;text-shadow:0 0 8px rgba(0,238,255,0.2)}
   .lh-globe-container{width:100%;height:300px;position:relative;border-radius:6px;overflow:hidden;background:#010208}
-  #earth-canvas,#mars-canvas,#solsys-canvas{width:100%!important;height:100%!important;display:block;position:static!important;top:auto!important;left:auto!important}
+  #earth-canvas,#mars-canvas,#solsys-canvas{width:100%;height:100%;display:block}
 
   .lh-timeline{display:flex;flex-direction:column;gap:0}
   .lh-timeline-item{display:flex;gap:14px;padding:12px 0;border-left:2px solid rgba(0,238,255,0.15);margin-left:8px;padding-left:18px;position:relative}
