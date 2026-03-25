@@ -295,39 +295,36 @@ function _initEarthViewer(){
   const rimLight = new THREE.DirectionalLight(0x8844ff, 0.6); rimLight.position.set(-4, 1, -3); _ehScene.add(rimLight);
   const topLight = new THREE.PointLight(0x00eeff, 0.5, 10); topLight.position.set(0, 3, 0); _ehScene.add(topLight);
 
-  // Earth — holographic wireframe style with glowing edges
-  // Solid dark base sphere
+  // Earth — real NASA texture with sci-fi overlays
+  const earthTex = _mkTex(512, 256, _pTexFns.Earth);
   _ehEarth = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 48, 48),
-    new THREE.MeshPhongMaterial({ color: 0x050818, emissive: 0x061228, shininess: 5, transparent: true, opacity: 0.85 })
+    new THREE.SphereGeometry(1, 64, 64),
+    new THREE.MeshStandardMaterial({ map: earthTex, roughness: 0.7, metalness: 0.05 })
   );
   _ehScene.add(_ehEarth);
 
-  // Wireframe overlay — glowing cyan grid lines
-  const wireGeo = new THREE.SphereGeometry(1.005, 32, 24);
-  const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ccff, wireframe: true, transparent: true, opacity: 0.12 });
+  // Swap in real NASA Blue Marble when loaded
+  loadRealEarthTexture((tex) => {
+    if (tex && _ehEarth) { _ehEarth.material.map = tex; _ehEarth.material.needsUpdate = true; }
+  });
+
+  // Wireframe overlay — faint cyan grid for sci-fi feel on top of real Earth
+  const wireGeo = new THREE.SphereGeometry(1.006, 32, 24);
+  const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ccff, wireframe: true, transparent: true, opacity: 0.06 });
   _ehEarth.add(new THREE.Mesh(wireGeo, wireMat));
 
-  // Brighter wireframe at key latitudes (equator, tropics, arctic)
+  // Latitude rings (equator, tropics, arctic)
   [0, 23.5, -23.5, 66.5, -66.5].forEach(lat => {
     const latRad = lat * Math.PI / 180;
     const r = Math.cos(latRad) * 1.008;
     const y = Math.sin(latRad) * 1.008;
     const ringGeo = new THREE.RingGeometry(r - 0.002, r + 0.002, 64);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00eeff, side: THREE.DoubleSide, transparent: true, opacity: 0.15 });
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00eeff, side: THREE.DoubleSide, transparent: true, opacity: 0.08 });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.position.y = y;
     ring.rotation.x = Math.PI / 2;
     _ehEarth.add(ring);
   });
-
-  // Continent overlay — faint additive Earth texture for sci-fi holographic feel
-  const scifiTex = _mkTex(256, 128, _pTexFns.Earth);
-  const continentOverlay = new THREE.Mesh(
-    new THREE.SphereGeometry(1.003, 48, 48),
-    new THREE.MeshBasicMaterial({ map: scifiTex, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false })
-  );
-  _ehEarth.add(continentOverlay);
 
   // Outer glow — multiple layers for holographic feel
   const glowColors = [
