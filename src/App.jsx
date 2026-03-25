@@ -335,23 +335,23 @@ function App() {
             <button className="sim-launch-btn" id="sim-launch-btn">INITIATE LAUNCH SEQUENCE</button>
           </div>
 
-          <div className="sim-dual-viewport">
-            <div className="sim-viewport-half" id="sim-viewport-a" style={{flex:'1'}}>
-              <canvas id="sim-canvas-a"></canvas>
-              <div className="sim-rocket-label sim-label-a" id="sim-label-a">STARSHIP / SUPER HEAVY</div>
-              <div className="sim-telemetry" id="sim-telemetry-a">
-                <div className="sim-telem-row"><span className="sim-telem-label">T+</span><span className="sim-telem-val" id="sim-t-time">00:00</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">ALT</span><span className="sim-telem-val" id="sim-t-alt">0 km</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">VEL</span><span className="sim-telem-val" id="sim-t-vel">0 m/s</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">ACCEL</span><span className="sim-telem-val" id="sim-t-accel">0.0 g</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">DOWNRANGE</span><span className="sim-telem-val" id="sim-t-downrange">0 km</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">BOOSTER FUEL</span><span className="sim-telem-val" id="sim-t-bfuel">100%</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">SHIP FUEL</span><span className="sim-telem-val" id="sim-t-sfuel">100%</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">STAGE</span><span className="sim-telem-val" id="sim-t-stage">BOOSTER</span></div>
-                <div className="sim-telem-row"><span className="sim-telem-label">STATUS</span><span className="sim-telem-val" id="sim-t-status">PRE-LAUNCH</span></div>
-              </div>
-              <div className="sim-ticker" id="sim-ticker-a"><div className="sim-ticker-text" id="sim-ticker-text"></div></div>
+          <div className="sim-visual-panel">
+            <div className="sim-image-container">
+              <img src="/Infinita/images/starship.jpg" alt="SpaceX Starship" className="sim-starship-img" id="sim-starship-img" />
+              <div className="sim-img-overlay" id="sim-img-overlay"></div>
             </div>
+            <div className="sim-telemetry" id="sim-telemetry-a">
+              <div className="sim-telem-row"><span className="sim-telem-label">T+</span><span className="sim-telem-val" id="sim-t-time">00:00</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">ALT</span><span className="sim-telem-val" id="sim-t-alt">0 km</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">VEL</span><span className="sim-telem-val" id="sim-t-vel">0 m/s</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">ACCEL</span><span className="sim-telem-val" id="sim-t-accel">0.0 g</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">DOWNRANGE</span><span className="sim-telem-val" id="sim-t-downrange">0 km</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">BOOSTER FUEL</span><span className="sim-telem-val" id="sim-t-bfuel">100%</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">SHIP FUEL</span><span className="sim-telem-val" id="sim-t-sfuel">100%</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">STAGE</span><span className="sim-telem-val" id="sim-t-stage">BOOSTER</span></div>
+              <div className="sim-telem-row"><span className="sim-telem-label">STATUS</span><span className="sim-telem-val" id="sim-t-status">PRE-LAUNCH</span></div>
+            </div>
+            <div className="sim-ticker" id="sim-ticker-a"><div className="sim-ticker-text" id="sim-ticker-text"></div></div>
           </div>
         </div>
       </div>

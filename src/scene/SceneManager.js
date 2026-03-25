@@ -2995,8 +2995,7 @@ function _startLaunch() {
 
 // ── Physics + Rendering loop ─────────────────────
 function _simAnimate(now) {
-  if (!_simActive) return;
-  if (!_simState) return;
+  if (!_simActive || !_simState) return;
   requestAnimationFrame(_simAnimate);
 
   var dt = Math.min((now - _simLastT) / 1000, 0.1);
@@ -3016,21 +3015,18 @@ function _simAnimate(now) {
         }
       }
       _updateTelemetry();
-      if (s.renderer && s.scene && s.cam) s.renderer.render(s.scene, s.cam);
       return;
     }
     // Countdown just hit zero — ignition!
     s.countdownActive = false;
     s.running = true;
     s.t = 0;
-    if (s.exhaust) s.exhaust.grp.visible = true;
     _showTicker('LIFTOFF! All ' + document.getElementById('sim-engines').value + ' Raptors at full thrust.');
     var statusEl2 = document.getElementById('sim-status');
     if (statusEl2) statusEl2.textContent = 'LAUNCH IN PROGRESS';
   }
 
   if (!s.running && !s.completed) {
-    if (s.renderer && s.scene && s.cam) s.renderer.render(s.scene, s.cam);
     return;
   }
 
@@ -3101,14 +3097,7 @@ function _simAnimate(now) {
         s.stage = 'ship';
         _showTicker('Stage separation. Ship engines at full thrust.');
 
-        // Separate booster visually
-        if (s.boosterGroup && s.rocket) {
-          s.rocket.remove(s.boosterGroup);
-          s.separatedBooster = s.boosterGroup.clone();
-          s.separatedBooster.position.copy(s.rocket.position);
-          s.separatedBooster.position.y -= 0.1;
-          s.scene.add(s.separatedBooster);
-        }
+        // Stage separation (visual handled by image overlay)
       }
       if (!s._msgBoostback && s.t >= STARSHIP.booster.burnTime + 5) {
         s._msgBoostback = true;
@@ -3191,71 +3180,34 @@ function _simAnimate(now) {
     }
   }
 
-  // ── 3D updates ──
-  if (s.rocket && s.running) {
-    var rY = 0.22 + Math.min(s.alt / 50, 4.0);
-    s.rocket.position.y = rY;
-    s.rocket.position.x = Math.min(s.downrange / 200, 1.5);
-    s.rocket.rotation.z = Math.min(s.t * 0.006, (90 - s.pitchAngle) * Math.PI / 180);
-  }
-
-  // Separated booster drifts down
-  if (s.separatedBooster) {
-    s.separatedBooster.position.y -= dt * 0.3;
-    s.separatedBooster.position.x -= dt * 0.05;
-    if (s.separatedBooster.position.y < -2) {
-      s.scene.remove(s.separatedBooster);
-      s.separatedBooster = null;
+  // ── Image overlay effects ──
+  var overlay = document.getElementById('sim-img-overlay');
+  if (overlay) {
+    if (s.running && (s.stage === 'booster' || s.stage === 'hot-stage' || s.stage === 'ship')) {
+      overlay.className = 'sim-img-overlay launching';
+    } else if (s.completed) {
+      overlay.className = 'sim-img-overlay orbit';
+    } else {
+      overlay.className = 'sim-img-overlay';
     }
   }
 
-  // Trajectory line opacity
-  if (s.trajLine) {
-    s.trajLine.material.opacity = 0.1 + Math.min(s.alt / 400, 0.5);
-  }
-
-  // Exhaust particles
-  if (s.exhaust && s.running && (s.stage === 'booster' || s.stage === 'hot-stage' || s.stage === 'ship')) {
-    var rPos = s.rocket ? s.rocket.position : { x: 0, y: 0.22, z: 0 };
-    s.exhaust.grp.visible = true;
-    s.exhaust.layers.forEach(function(layer) {
-      var p = layer.pos;
-      for (var pi = 0; pi < layer.n; pi++) {
-        var age = Math.random();
-        p[pi * 3]     = rPos.x + (Math.random() - 0.5) * layer.spread;
-        p[pi * 3 + 1] = rPos.y - 0.09 - age * (layer.lenMin + Math.random() * (layer.lenMax - layer.lenMin));
-        p[pi * 3 + 2] = rPos.z + (Math.random() - 0.5) * layer.spread;
-      }
-      layer.pts.geometry.attributes.position.needsUpdate = true;
-    });
-    // Hide smoke above atmosphere
-    s.exhaust.layers[2].pts.visible = s.alt < 80;
-  } else if (s.exhaust && (s.stage === 'coast' || s.completed)) {
-    s.exhaust.grp.visible = false;
-  }
-
-  // Camera follows rocket, transitions to wider view at separation
-  if (s.cam && s.rocket) {
-    var tY = s.rocket.position.y;
-    var tX = s.rocket.position.x;
-    var camDist = 3 + Math.min(s.alt / 100, 4);
-    s.cam.position.x += (tX + camDist - s.cam.position.x) * dt * 1.5;
-    s.cam.position.y += (tY + 0.5 - s.cam.position.y) * dt * 2;
-    s.cam.lookAt(tX, tY, 0);
-  }
-
-  // Rotate earth slowly
-  if (s.earth) {
-    s.earth.rotation.y += dt * 0.02;
-    s.earth.children.forEach(function(c) { if (c.userData._cloudSpin) c.rotation.y += dt * 0.05; });
+  // Image shake effect during Max Q / high thrust
+  var img = document.getElementById('sim-starship-img');
+  if (img && s.running) {
+    var shake = s.accel > 1.5 ? (s.accel - 1.5) * 0.3 : 0;
+    if (shake > 0) {
+      var sx = (Math.random() - 0.5) * shake;
+      var sy = (Math.random() - 0.5) * shake;
+      img.style.transform = 'translate(' + sx + 'px,' + sy + 'px)';
+    } else {
+      img.style.transform = '';
+    }
+  } else if (img) {
+    img.style.transform = '';
   }
 
   _updateTelemetry();
-
-  // Render
-  if (s.renderer && s.scene && s.cam) {
-    s.renderer.render(s.scene, s.cam);
-  }
 }
 
 // ── Open / Close ─────────────────────────────────
@@ -3268,23 +3220,18 @@ function openLaunchSim() {
   // Initialize specs from current slider values
   _updateSpecs();
 
-  // Init 3D viewer after DOM settles
-  setTimeout(function() {
-    _initSimViewer();
-    _updateTelemetry();
-    requestAnimationFrame(function(t) {
-      _simLastT = t;
-      _simAnimate(t);
-    });
-  }, 60);
+  _updateTelemetry();
+  requestAnimationFrame(function(t) {
+    _simLastT = t;
+    _simAnimate(t);
+  });
 }
 
 function closeLaunchSim() {
   _simActive = false;
-  if (_simState) {
-    if (_simState.renderer) _simState.renderer.dispose();
-    _simState = null;
-  }
+  _simRunning = false;
+  var overlay = document.getElementById('sim-img-overlay');
+  if (overlay) { overlay.className = 'sim-img-overlay'; }
   document.getElementById('launch-sim').classList.remove('open');
   document.getElementById('splash').classList.remove('hidden');
 }
@@ -3326,15 +3273,7 @@ document.getElementById('splash-sim-btn').addEventListener('click', function(e) 
 
 // Resize handler
 window.addEventListener('resize', function() {
-  if (!_simActive || !_simState || !_simState.renderer) return;
-  var canvas = document.getElementById('sim-canvas-a');
-  if (!canvas) return;
-  var w = canvas.offsetWidth, h = canvas.offsetHeight;
-  if (w && h) {
-    _simState.renderer.setSize(w, h);
-    _simState.cam.aspect = w / h;
-    _simState.cam.updateProjectionMatrix();
-  }
+  // No 3D viewport to resize — image scales via CSS
 });
 document.getElementById('hud-back-btn').addEventListener('click', () => {
   started = false;

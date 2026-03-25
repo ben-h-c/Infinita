@@ -386,6 +386,13 @@
 .sim-ticker{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,8,18,0.9));padding:10px 14px 8px;pointer-events:none;z-index:2}
 .sim-ticker-text{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,238,255,0.7);letter-spacing:1px;white-space:nowrap;overflow:hidden}
 .sim-status{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(0,238,255,0.4)}
+.sim-visual-panel{flex:1;position:relative;overflow:hidden;background:#010208;display:flex;flex-direction:column}
+.sim-image-container{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sim-starship-img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:brightness(0.9) contrast(1.1)}
+.sim-img-overlay{position:absolute;inset:0;pointer-events:none;background:transparent;transition:background 1s}
+.sim-img-overlay.launching{background:radial-gradient(ellipse at 50% 80%,rgba(255,140,20,0.15) 0%,transparent 60%);animation:launchGlow 0.5s ease-in-out infinite alternate}
+.sim-img-overlay.orbit{background:radial-gradient(ellipse at 50% 50%,rgba(0,180,255,0.08) 0%,transparent 50%)}
+@keyframes launchGlow{from{opacity:0.6}to{opacity:1}}
 .sim-slider{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:rgba(0,238,255,0.15);border-radius:2px;outline:none;margin:6px 0}
 .sim-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#0ef;cursor:pointer;border:2px solid rgba(0,238,255,0.5)}
 .sim-slider-val{font-family:'Orbitron',sans-serif;font-size:10px;color:#0ef;text-align:right;margin-top:2px}
