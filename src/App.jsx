@@ -48,8 +48,8 @@ function App() {
               <div className="splash-btn-sub">Plan your journey across the cosmos</div>
             </button>
           </div>
-          <div className="splash-hover-box" id="splash-hover-box"></div>
         </div>
+        <div className="splash-hover-box" id="splash-hover-box"></div>
       </div>
 
       <div id="hud">
