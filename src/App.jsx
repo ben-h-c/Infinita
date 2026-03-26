@@ -345,7 +345,7 @@ function App() {
               <option value="1">1x</option>
               <option value="2">2x</option>
               <option value="5">5x</option>
-              <option value="10">10x</option>
+              <option value="10" selected>10x</option>
             </select>
             <button className="fp-ctrl-btn" id="fp-reset-btn">{'\u21BA'}</button>
           </div>

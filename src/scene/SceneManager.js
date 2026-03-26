@@ -2855,7 +2855,7 @@ document.getElementById('splash-launches-btn').addEventListener('click', (e) => 
 
 let _fpActive = false;
 let _fpPlaying = false;
-let _fpSpeed = 1;
+let _fpSpeed = 10;
 let _fpTime = 0;
 let _fpLastT = 0;
 let _fpState = null;
