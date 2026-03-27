@@ -95,20 +95,32 @@ const _FLARE_COUNT = 8;
 for (let i = 0; i < _FLARE_COUNT; i++) {
   const fc = document.createElement('canvas'); fc.width = 64; fc.height = 128;
   const fctx = fc.getContext('2d');
-  // Tall elongated flame shape — bright red-orange base fading to faint tip
-  const fg = fctx.createLinearGradient(32, 128, 32, 0);
-  fg.addColorStop(0, 'rgba(255,140,30,0.9)');
-  fg.addColorStop(0.2, 'rgba(255,90,15,0.6)');
-  fg.addColorStop(0.5, 'rgba(255,50,5,0.25)');
-  fg.addColorStop(0.8, 'rgba(200,30,0,0.06)');
-  fg.addColorStop(1, 'rgba(0,0,0,0)');
-  fctx.fillStyle = fg; fctx.fillRect(8, 0, 48, 128);
-  // Add hot bright core at base
-  const cg = fctx.createRadialGradient(32, 115, 0, 32, 115, 20);
-  cg.addColorStop(0, 'rgba(255,220,120,0.8)');
-  cg.addColorStop(0.5, 'rgba(255,160,40,0.3)');
+  // Draw flame shape using overlapping soft ellipses — no rectangles
+  // Wide base narrowing to a wispy tip
+  for (let layer = 0; layer < 12; layer++) {
+    const t = layer / 12; // 0=base, 1=tip
+    const cy = 120 - t * 110; // y position: bottom to top
+    const rx = (1 - t * t) * 22 + 3; // width: wide base, narrow tip (quadratic falloff)
+    const ry = 8 + (1 - t) * 10; // vertical extent
+    const wobble = Math.sin(layer * 1.7 + i * 2.3) * 4; // slight random sway
+    const g = fctx.createRadialGradient(32 + wobble, cy, 0, 32 + wobble, cy, Math.max(rx, ry));
+    const alpha = (1 - t * 0.8) * 0.2;
+    const r2 = 255, g2 = Math.max(0, 160 - t * 120) | 0, b2 = Math.max(0, 50 - t * 45) | 0;
+    g.addColorStop(0, `rgba(${r2},${g2},${b2},${alpha})`);
+    g.addColorStop(0.4, `rgba(${r2},${g2*0.7|0},${b2*0.5|0},${alpha*0.4})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    fctx.fillStyle = g;
+    fctx.beginPath();
+    fctx.ellipse(32 + wobble, cy, rx, ry, 0, 0, Math.PI * 2);
+    fctx.fill();
+  }
+  // Hot white-yellow core at base
+  const cg = fctx.createRadialGradient(32, 118, 0, 32, 118, 14);
+  cg.addColorStop(0, 'rgba(255,240,180,0.7)');
+  cg.addColorStop(0.4, 'rgba(255,180,60,0.3)');
   cg.addColorStop(1, 'rgba(0,0,0,0)');
-  fctx.fillStyle = cg; fctx.fillRect(0, 90, 64, 38);
+  fctx.fillStyle = cg;
+  fctx.beginPath(); fctx.ellipse(32, 118, 14, 10, 0, 0, Math.PI * 2); fctx.fill();
   const flareMat = new THREE.SpriteMaterial({
     map: new THREE.CanvasTexture(fc), blending: THREE.AdditiveBlending,
     transparent: true, depthWrite: false, opacity: 0
