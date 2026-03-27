@@ -1161,37 +1161,33 @@ function _buildGalaxyModel(opts = {}) {
   const galaxyCanvas = _paintGalaxyCanvas(texSize, opts);
   const galaxyTex = new THREE.CanvasTexture(galaxyCanvas);
 
-  // Main galaxy disc — a flat plane with the painted texture
-  const planeGeo = new THREE.PlaneGeometry(R * 2, R * 2);
-  const planeMat = new THREE.MeshBasicMaterial({
+  // Main galaxy — use a billboard sprite so it always faces the camera
+  // This ensures the painted galaxy is always fully visible regardless of tilt
+  const galaxySprite = new THREE.Sprite(new THREE.SpriteMaterial({
     map: galaxyTex,
     transparent: true,
-    blending: THREE.AdditiveBlending,
     depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-  const plane = new THREE.Mesh(planeGeo, planeMat);
-  plane.rotation.x = -Math.PI / 2; // flat on XZ plane
-  group.add(plane);
+  }));
+  // Squash vertically based on tilt to simulate inclination (Andromeda ~77° = very elongated)
+  const aspect = Math.max(0.25, Math.cos(tilt));
+  galaxySprite.scale.set(R * 2.2, R * 2.2 * aspect, 1);
+  group.add(galaxySprite);
 
-  // Core glow sprite (3D — visible from any angle, even edge-on)
+  // Bright core glow — always facing camera
   const cc = document.createElement('canvas'); cc.width = 128; cc.height = 128;
   const cctx = cc.getContext('2d');
   const cg = cctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  cg.addColorStop(0, 'rgba(255,245,210,0.9)');
-  cg.addColorStop(0.15, 'rgba(255,225,170,0.5)');
-  cg.addColorStop(0.4, 'rgba(220,180,120,0.15)');
-  cg.addColorStop(0.7, 'rgba(150,130,100,0.03)');
+  cg.addColorStop(0, 'rgba(255,245,215,1)');
+  cg.addColorStop(0.1, 'rgba(255,230,180,0.7)');
+  cg.addColorStop(0.3, 'rgba(230,190,130,0.2)');
+  cg.addColorStop(0.6, 'rgba(180,150,100,0.04)');
   cg.addColorStop(1, 'rgba(0,0,0,0)');
   cctx.fillStyle = cg; cctx.fillRect(0, 0, 128, 128);
   const coreSp = new THREE.Sprite(new THREE.SpriteMaterial({
     map: new THREE.CanvasTexture(cc), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
   }));
-  coreSp.scale.setScalar(R * 0.8);
+  coreSp.scale.set(R * 0.8, R * 0.8 * aspect, 1);
   group.add(coreSp);
-
-  // Apply tilt (galaxy inclination)
-  group.rotation.x = tilt;
 
   return group;
 }
@@ -1898,17 +1894,16 @@ document.getElementById('travel-instant-btn').addEventListener('click', () => {
   const objR = travelDest.radius || 0.05;
   const isGalaxyDest = _GALAXY_NAMES.test((travelDest.name || '').toLowerCase());
   if (isGalaxyDest) {
-    // Position camera close to galaxy — slightly above for nice spiral view
-    const viewDist = objR * 1.2;
-    camera.position.set(
-      travelDest.position.x + viewDist * 0.5,
-      travelDest.position.y + viewDist * 0.7,
-      travelDest.position.z + viewDist * 0.3
-    );
+    // Position camera directly in front of galaxy, close enough to fill the view
+    const viewDist = objR * 1.5;
+    // Place camera along the line from origin to galaxy, slightly offset
+    const toGalaxy = travelDest.position.clone().normalize();
+    camera.position.copy(travelDest.position).addScaledVector(toGalaxy, -viewDist);
     // Face the galaxy center
     const toTarget = new THREE.Vector3().subVectors(travelDest.position, camera.position).normalize();
     yaw = Math.atan2(-toTarget.x, -toTarget.z);
     pitch = Math.asin(Math.max(-1, Math.min(1, toTarget.y)));
+    roll = 0;
   } else {
     const stopR = Math.max(objR * 4, objR * 6);
     const dir = new THREE.Vector3().subVectors(travelDest.position, camera.position).normalize();
