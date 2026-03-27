@@ -1804,7 +1804,8 @@ document.getElementById('facts-suggest-btn').addEventListener('click', () => {
     openTravelPanel();
     const inp = document.getElementById('travel-dest-input');
     inp.value = _factsSuggestTarget;
-    doTravelSearch(_factsSuggestTarget);
+    // Small delay to ensure panel is open before searching
+    setTimeout(() => doTravelSearch(_factsSuggestTarget), 50);
   }
 });
 
@@ -1924,7 +1925,7 @@ function getLocalMatches(q) {
       name: s.name, distLY: s.dist, typeLabel: 'Star',
       mesh: namedStarMeshes.find(m => m.userData.name === s.name), scaleLevel: 1
     })),
-    ...searchableObjects.map(o => ({ ...o, scaleLevel: o.typeLabel === 'Planet' ? 0 : o.typeLabel === 'Star' ? 1 : 2 }))
+    ...searchableObjects.map(o => ({ ...o, scaleLevel: o.scaleLevel !== undefined ? o.scaleLevel : (o.typeLabel === 'Planet' ? 0 : o.typeLabel === 'Star' ? 1 : 2) }))
   ];
   const seen = new Set();
   const results = [];
