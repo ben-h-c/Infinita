@@ -1040,25 +1040,27 @@ function travelToMesh(mesh, scaleLevel, name, orbitR) {
 
 // simbadMarkerRadius imported from simbad.js
 
-// ── Procedural galaxy model builder ──────────────────────────────
+// ── Procedural galaxy model builder (for external viewing at Cosmic scale) ──
 function _buildGalaxyModel(opts = {}) {
   const group = new THREE.Group();
-  const scale = opts.scale || 1;          // size multiplier
-  const tilt = opts.tilt || 0.4;          // inclination angle (radians)
-  const arms = opts.arms || 2;            // number of spiral arms
-  const wind = opts.wind || 2.5;          // arm winding tightness
+  const scale = opts.scale || 1;
+  const tilt = opts.tilt || 0.4;
+  const arms = opts.arms || 2;
+  const wind = opts.wind || 2.5;
   const isElliptical = opts.elliptical || false;
-  const hue = opts.hue || 'blue';         // 'blue' (spiral) or 'warm' (elliptical)
 
+  // Galaxy radius ~110,000 ly * scale → in AU
+  // Particle sizes scaled for visibility at ~3x galaxy radius viewing distance
   const KLY = 63241;
-  const R = 50000 * KLY * scale;          // galaxy radius in AU
-  const bulgeR = 5000 * KLY * scale;
+  const R = 50000 * KLY * scale;          // galaxy radius in AU (~3.16e9 * scale)
+  const bulgeR = 12000 * KLY * scale;
+  const R0 = 3000 * KLY * scale;
+  const pSize = R * 0.006;                // particle size ~0.6% of galaxy radius
 
   // A. Spiral Disc (or elliptical body)
-  const discN = isMobile ? 4000 : 12000;
+  const discN = isMobile ? 5000 : 15000;
   const dP = new Float32Array(discN * 3);
   const dC = new Float32Array(discN * 3);
-  const R0 = 3000 * KLY * scale;
 
   for (let i = 0; i < discN; i++) {
     let x, y, z2;
@@ -1067,7 +1069,7 @@ function _buildGalaxyModel(opts = {}) {
       const th = Math.random() * Math.PI * 2;
       const ph = Math.acos(2 * Math.random() - 1);
       x = r2 * Math.sin(ph) * Math.cos(th);
-      y = r2 * Math.sin(ph) * Math.sin(th) * 0.65;
+      y = r2 * Math.sin(ph) * Math.sin(th) * 0.6;
       z2 = r2 * Math.cos(ph);
     } else {
       const inArm = i < discN * 0.7;
@@ -1075,27 +1077,22 @@ function _buildGalaxyModel(opts = {}) {
       const armBase = (armIdx / arms) * Math.PI * 2;
       const dist = Math.pow(Math.random(), 0.7) * R;
       const spiralAngle = armBase + Math.log(1 + dist / R0) * wind;
-      const spread = _gaussRand() * dist * (inArm ? 0.06 : 0.12);
+      const spread = _gaussRand() * dist * (inArm ? 0.06 : 0.14);
       x = Math.cos(spiralAngle) * dist + Math.cos(spiralAngle + Math.PI / 2) * spread;
       y = _gaussRand() * dist * 0.008;
       z2 = Math.sin(spiralAngle) * dist + Math.sin(spiralAngle + Math.PI / 2) * spread;
     }
     dP[i * 3] = x; dP[i * 3 + 1] = y; dP[i * 3 + 2] = z2;
 
-    // Color: warm golden center → blue-white spiral arms (like real galaxies)
     const distFromCenter = Math.sqrt(x * x + z2 * z2) / R;
     let temp;
     if (isElliptical) {
       temp = 3500 + Math.random() * 2000;
     } else {
       const inArm = i < discN * 0.7;
-      if (distFromCenter < 0.15) {
-        temp = 3500 + Math.random() * 2000; // warm golden core
-      } else if (inArm) {
-        temp = 7000 + Math.random() * 18000; // hot blue-white in arms
-      } else {
-        temp = 3500 + Math.random() * 3500; // warm between arms
-      }
+      if (distFromCenter < 0.15) temp = 3500 + Math.random() * 2000;
+      else if (inArm) temp = 7000 + Math.random() * 18000;
+      else temp = 3500 + Math.random() * 3500;
     }
     const c = tempToColor(temp);
     dC[i * 3] = c.r; dC[i * 3 + 1] = c.g; dC[i * 3 + 2] = c.b;
@@ -1104,11 +1101,11 @@ function _buildGalaxyModel(opts = {}) {
   dG.setAttribute('position', new THREE.BufferAttribute(dP, 3));
   dG.setAttribute('color', new THREE.BufferAttribute(dC, 3));
   group.add(new THREE.Points(dG, new THREE.PointsMaterial({
-    size: 7000 * scale, vertexColors: true, sizeAttenuation: true, transparent: true, opacity: 0.6
+    size: pSize, vertexColors: true, sizeAttenuation: true, transparent: true, opacity: 0.7
   })));
 
-  // B. Central Bulge
-  const bN = isMobile ? 500 : 1500;
+  // B. Central Bulge — denser, warmer
+  const bN = isMobile ? 800 : 2500;
   const bP = new Float32Array(bN * 3);
   const bC = new Float32Array(bN * 3);
   for (let i = 0; i < bN; i++) {
@@ -1116,7 +1113,7 @@ function _buildGalaxyModel(opts = {}) {
     const th = Math.random() * Math.PI * 2;
     const ph = Math.acos(2 * Math.random() - 1);
     bP[i * 3] = r2 * Math.sin(ph) * Math.cos(th);
-    bP[i * 3 + 1] = r2 * Math.sin(ph) * Math.sin(th) * 0.55;
+    bP[i * 3 + 1] = r2 * Math.sin(ph) * Math.sin(th) * 0.5;
     bP[i * 3 + 2] = r2 * Math.cos(ph);
     const c = tempToColor(3500 + Math.random() * 2500);
     bC[i * 3] = c.r; bC[i * 3 + 1] = c.g; bC[i * 3 + 2] = c.b;
@@ -1125,27 +1122,42 @@ function _buildGalaxyModel(opts = {}) {
   bG.setAttribute('position', new THREE.BufferAttribute(bP, 3));
   bG.setAttribute('color', new THREE.BufferAttribute(bC, 3));
   group.add(new THREE.Points(bG, new THREE.PointsMaterial({
-    size: 12000 * scale, vertexColors: true, sizeAttenuation: true, transparent: true, opacity: 0.8
+    size: pSize * 1.8, vertexColors: true, sizeAttenuation: true, transparent: true, opacity: 0.85
   })));
 
-  // C. Core Glow
+  // C. Core Glow — large sprite visible from far away
   const cc = document.createElement('canvas'); cc.width = 128; cc.height = 128;
   const cctx = cc.getContext('2d');
   const cg = cctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  cg.addColorStop(0, 'rgba(255,235,200,0.7)');
-  cg.addColorStop(0.2, 'rgba(255,210,150,0.3)');
-  cg.addColorStop(0.5, 'rgba(200,160,100,0.08)');
+  cg.addColorStop(0, 'rgba(255,235,200,0.8)');
+  cg.addColorStop(0.15, 'rgba(255,215,160,0.5)');
+  cg.addColorStop(0.4, 'rgba(200,160,100,0.15)');
   cg.addColorStop(1, 'rgba(0,0,0,0)');
   cctx.fillStyle = cg; cctx.fillRect(0, 0, 128, 128);
   const coreSp = new THREE.Sprite(new THREE.SpriteMaterial({
     map: new THREE.CanvasTexture(cc), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
   }));
-  coreSp.scale.setScalar(1.5e7 * scale);
+  coreSp.scale.setScalar(R * 0.5); // core glow = 50% of galaxy radius
   group.add(coreSp);
 
-  // D. Dust Lanes (spiral only)
-  if (!isElliptical) {
-    const dustN = isMobile ? 600 : 2000;
+  // D. Outer glow halo — makes galaxy visible from far away
+  const hc = document.createElement('canvas'); hc.width = 128; hc.height = 128;
+  const hctx = hc.getContext('2d');
+  const hg = hctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  hg.addColorStop(0, 'rgba(150,170,255,0.12)');
+  hg.addColorStop(0.3, 'rgba(120,140,220,0.06)');
+  hg.addColorStop(0.7, 'rgba(80,100,180,0.02)');
+  hg.addColorStop(1, 'rgba(0,0,0,0)');
+  hctx.fillStyle = hg; hctx.fillRect(0, 0, 128, 128);
+  const haloSp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(hc), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
+  }));
+  haloSp.scale.setScalar(R * 2.5); // halo much larger than galaxy
+  group.add(haloSp);
+
+  // E. Dust Lanes (spiral only)
+  if (!isElliptical && arms > 0) {
+    const dustN = isMobile ? 800 : 2500;
     const dustP = new Float32Array(dustN * 3);
     const dustC = new Float32Array(dustN * 3);
     for (let i = 0; i < dustN; i++) {
@@ -1157,13 +1169,13 @@ function _buildGalaxyModel(opts = {}) {
       dustP[i * 3] = Math.cos(spiralAngle) * dist + Math.cos(spiralAngle + Math.PI / 2) * spread;
       dustP[i * 3 + 1] = _gaussRand() * dist * 0.003;
       dustP[i * 3 + 2] = Math.sin(spiralAngle) * dist + Math.sin(spiralAngle + Math.PI / 2) * spread;
-      dustC[i * 3] = 0.1; dustC[i * 3 + 1] = 0.07; dustC[i * 3 + 2] = 0.04;
+      dustC[i * 3] = 0.08; dustC[i * 3 + 1] = 0.05; dustC[i * 3 + 2] = 0.03;
     }
     const dustG = new THREE.BufferGeometry();
     dustG.setAttribute('position', new THREE.BufferAttribute(dustP, 3));
     dustG.setAttribute('color', new THREE.BufferAttribute(dustC, 3));
     group.add(new THREE.Points(dustG, new THREE.PointsMaterial({
-      size: 15000 * scale, vertexColors: true, sizeAttenuation: true, transparent: true, opacity: 0.3, blending: THREE.NormalBlending
+      size: pSize * 2, vertexColors: true, sizeAttenuation: true, transparent: true, opacity: 0.35, blending: THREE.NormalBlending
     })));
   }
 
@@ -1217,8 +1229,10 @@ function _ensureGalaxyModel(dest) {
     group.add(m110);
   }
 
-  // Update radius on dest so camera stops at proper distance
-  dest.radius = 8e8;
+  // Update radius and scale so camera stops at proper distance
+  const galaxyR = 50000 * 63241 * (galaxyOpts.scale || 1); // galaxy radius in AU
+  dest.radius = galaxyR;
+  dest.scaleLevel = 3;
 }
 
 function travelToSIMBADResult(result, skipTravel = false) {
@@ -1852,19 +1866,19 @@ document.getElementById('travel-engage-btn').addEventListener('click', () => {
 document.getElementById('travel-instant-btn').addEventListener('click', () => {
   if (!travelDest) return;
   closeTravelPanel();
-  // Switch scale
-  if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
-    currentScale = travelDest.scaleLevel; applyScale();
-  }
-  // Create galaxy model or SIMBAD object at destination
+  // Create galaxy model or SIMBAD object at destination FIRST (may update scale/radius)
   if (travelDest.simbadResult) {
     travelToSIMBADResult(travelDest.simbadResult, true);
   } else {
     _ensureGalaxyModel(travelDest);
   }
-  // Teleport camera directly to viewing position
+  // Switch scale (after model creation which may update scaleLevel)
+  if (travelDest.scaleLevel !== undefined && currentScale !== travelDest.scaleLevel) {
+    currentScale = travelDest.scaleLevel; applyScale();
+  }
+  // Teleport camera to viewing position — stop at 3x galaxy radius for nice framing
   const objR = travelDest.radius || 0.05;
-  const stopR = Math.max(objR * 4, objR * 6);
+  const stopR = objR * 3;
   const dir = new THREE.Vector3().subVectors(travelDest.position, camera.position).normalize();
   camera.position.copy(travelDest.position).addScaledVector(dir, -stopR);
   // Face the destination
