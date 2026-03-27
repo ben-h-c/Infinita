@@ -1097,51 +1097,49 @@ function _paintGalaxyCanvas(size, opts) {
 
     const distFromCenter = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) / maxR;
 
-    // Color: golden center → blue-white arms
+    // Color: golden center → blue-white arms (high brightness)
     let r, g, b, alpha;
     if (isElliptical || distFromCenter < 0.2) {
-      // Warm golden core
       const t = Math.random();
-      r = 255; g = 200 + t * 40; b = 130 + t * 50;
-      alpha = (1 - distFromCenter * 0.8) * (0.04 + Math.random() * 0.03);
+      r = 255; g = 210 + t * 40; b = 140 + t * 50;
+      alpha = (1 - distFromCenter * 0.6) * (0.15 + Math.random() * 0.15);
     } else if (i < N * 0.65) {
-      // Blue-white arm stars
       const t = Math.random();
-      r = 140 + t * 80; g = 160 + t * 70; b = 220 + t * 35;
-      alpha = (1 - distFromCenter * 0.6) * (0.02 + Math.random() * 0.02);
+      r = 150 + t * 80; g = 170 + t * 60; b = 230 + t * 25;
+      alpha = (1 - distFromCenter * 0.5) * (0.08 + Math.random() * 0.08);
     } else {
-      // Dimmer inter-arm stars
       const t = Math.random();
-      r = 200 + t * 55; g = 180 + t * 50; b = 150 + t * 40;
-      alpha = (1 - distFromCenter * 0.7) * (0.01 + Math.random() * 0.01);
+      r = 200 + t * 55; g = 185 + t * 45; b = 155 + t * 35;
+      alpha = (1 - distFromCenter * 0.6) * (0.04 + Math.random() * 0.04);
     }
 
-    // Add pink/red HII regions in spiral arms
-    if (!isElliptical && i < N * 0.65 && Math.random() < 0.03 && distFromCenter > 0.2) {
-      r = 255; g = 100 + Math.random() * 60; b = 120 + Math.random() * 40;
-      alpha = 0.06 + Math.random() * 0.04;
+    // Pink/red HII regions in spiral arms
+    if (!isElliptical && i < N * 0.65 && Math.random() < 0.04 && distFromCenter > 0.2) {
+      r = 255; g = 90 + Math.random() * 70; b = 110 + Math.random() * 50;
+      alpha = 0.15 + Math.random() * 0.1;
     }
 
-    const dotR = (1 - distFromCenter * 0.5) * (1.5 + Math.random() * 2);
+    const dotR = (1 - distFromCenter * 0.4) * (2 + Math.random() * 3);
     ctx.beginPath();
     ctx.arc(px, py, dotR, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(${r|0},${g|0},${b|0},${alpha})`;
     ctx.fill();
   }
 
-  // Bright central bulge glow
-  const bulgeGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR * 0.35);
-  bulgeGrad.addColorStop(0, 'rgba(255,240,200,0.7)');
-  bulgeGrad.addColorStop(0.2, 'rgba(255,220,170,0.4)');
-  bulgeGrad.addColorStop(0.5, 'rgba(220,180,120,0.1)');
+  // Bright central bulge glow — very prominent
+  const bulgeGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR * 0.4);
+  bulgeGrad.addColorStop(0, 'rgba(255,245,210,0.95)');
+  bulgeGrad.addColorStop(0.1, 'rgba(255,230,180,0.7)');
+  bulgeGrad.addColorStop(0.3, 'rgba(240,200,140,0.3)');
+  bulgeGrad.addColorStop(0.6, 'rgba(200,160,100,0.08)');
   bulgeGrad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = bulgeGrad;
   ctx.fillRect(0, 0, size, size);
 
-  // Soft outer halo
+  // Soft outer halo — visible glow
   const haloGrad = ctx.createRadialGradient(cx, cy, maxR * 0.1, cx, cy, maxR * 1.1);
-  haloGrad.addColorStop(0, 'rgba(180,190,255,0.05)');
-  haloGrad.addColorStop(0.5, 'rgba(120,140,200,0.02)');
+  haloGrad.addColorStop(0, 'rgba(180,195,255,0.12)');
+  haloGrad.addColorStop(0.4, 'rgba(140,160,220,0.05)');
   haloGrad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = haloGrad;
   ctx.fillRect(0, 0, size, size);
@@ -1176,19 +1174,20 @@ function _buildGalaxyModel(opts = {}) {
   plane.rotation.x = -Math.PI / 2; // flat on XZ plane
   group.add(plane);
 
-  // Core glow sprite (3D depth — visible from any angle)
+  // Core glow sprite (3D — visible from any angle, even edge-on)
   const cc = document.createElement('canvas'); cc.width = 128; cc.height = 128;
   const cctx = cc.getContext('2d');
   const cg = cctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  cg.addColorStop(0, 'rgba(255,240,200,0.6)');
-  cg.addColorStop(0.2, 'rgba(255,215,160,0.3)');
-  cg.addColorStop(0.5, 'rgba(200,160,100,0.08)');
+  cg.addColorStop(0, 'rgba(255,245,210,0.9)');
+  cg.addColorStop(0.15, 'rgba(255,225,170,0.5)');
+  cg.addColorStop(0.4, 'rgba(220,180,120,0.15)');
+  cg.addColorStop(0.7, 'rgba(150,130,100,0.03)');
   cg.addColorStop(1, 'rgba(0,0,0,0)');
   cctx.fillStyle = cg; cctx.fillRect(0, 0, 128, 128);
   const coreSp = new THREE.Sprite(new THREE.SpriteMaterial({
     map: new THREE.CanvasTexture(cc), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
   }));
-  coreSp.scale.setScalar(R * 0.6);
+  coreSp.scale.setScalar(R * 0.8);
   group.add(coreSp);
 
   // Apply tilt (galaxy inclination)
@@ -1899,12 +1898,12 @@ document.getElementById('travel-instant-btn').addEventListener('click', () => {
   const objR = travelDest.radius || 0.05;
   const isGalaxyDest = _GALAXY_NAMES.test((travelDest.name || '').toLowerCase());
   if (isGalaxyDest) {
-    // Position camera above and in front for a nice angled view of the spiral
-    const viewDist = objR * 3.5;
+    // Position camera close to galaxy — slightly above for nice spiral view
+    const viewDist = objR * 1.2;
     camera.position.set(
-      travelDest.position.x + viewDist * 0.7,
-      travelDest.position.y + viewDist * 0.6,
-      travelDest.position.z + viewDist * 0.5
+      travelDest.position.x + viewDist * 0.5,
+      travelDest.position.y + viewDist * 0.7,
+      travelDest.position.z + viewDist * 0.3
     );
     // Face the galaxy center
     const toTarget = new THREE.Vector3().subVectors(travelDest.position, camera.position).normalize();
