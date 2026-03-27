@@ -1220,7 +1220,16 @@ function _ensureGalaxyModel(dest) {
   if (!dest || !dest.name || !dest.position) return;
   // Check if this is a known galaxy type from the catalog, or matches known galaxy names
   const nameLower = dest.name.toLowerCase();
-  const isKnownGalaxy = dest.galaxyType || /galaxy|m31|m32|m33|m49|m51|m58|m59|m61|m63|m64|m65|m66|m74|m81|m82|m83|m84|m86|m87|m101|m104|m106|m108|m109|m110|andromeda|triangulum|whirlpool|sombrero|pinwheel|bode|cigar|magellanic|centaurus|sculptor|fornax|barnard|cartwheel|tadpole|milky/i.test(nameLower);
+
+  // Special case: Milky Way — don't create a new model, use the existing galaxyGroup
+  if (/milky\s*way/i.test(nameLower)) {
+    dest.scaleLevel = 2;
+    dest.radius = 50000 * 63241; // ~50 kly radius in AU
+    // Don't set _viewingGalaxy — the Milky Way is viewed from inside at scale 2
+    return;
+  }
+
+  const isKnownGalaxy = dest.galaxyType || /galaxy|m31|m32|m33|m49|m51|m58|m59|m61|m63|m64|m65|m66|m74|m81|m82|m83|m84|m86|m87|m101|m104|m106|m108|m109|m110|andromeda|triangulum|whirlpool|sombrero|pinwheel|bode|cigar|magellanic|centaurus|sculptor|fornax|barnard|cartwheel|tadpole/i.test(nameLower);
   if (!isKnownGalaxy) return;
   if (_galaxyModels[dest.name]) return; // already built
 
@@ -1920,14 +1929,20 @@ document.getElementById('travel-instant-btn').addEventListener('click', () => {
   }
   // Teleport camera to viewing position
   const objR = travelDest.radius || 0.05;
-  const isGalaxyDest = _GALAXY_NAMES.test((travelDest.name || '').toLowerCase());
-  if (isGalaxyDest) {
-    // Position camera directly in front of galaxy, close enough to fill the view
+  const isMilkyWay = /milky\s*way/i.test(travelDest.name || '');
+  const isGalaxyDest = !isMilkyWay && (travelDest.galaxyType || _viewingGalaxy);
+  if (isMilkyWay) {
+    // Milky Way: position above the galactic plane looking down at the spiral
+    const KLY = 63241;
+    camera.position.set(0, 80000 * KLY, 30000 * KLY);
+    yaw = Math.PI;
+    pitch = -1.1; // looking down
+    roll = 0;
+  } else if (isGalaxyDest) {
+    // External galaxy: position in front, close enough to fill the view
     const viewDist = objR * 1.5;
-    // Place camera along the line from origin to galaxy, slightly offset
     const toGalaxy = travelDest.position.clone().normalize();
     camera.position.copy(travelDest.position).addScaledVector(toGalaxy, -viewDist);
-    // Face the galaxy center
     const toTarget = new THREE.Vector3().subVectors(travelDest.position, camera.position).normalize();
     yaw = Math.atan2(-toTarget.x, -toTarget.z);
     pitch = Math.asin(Math.max(-1, Math.min(1, toTarget.y)));
