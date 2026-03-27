@@ -59,7 +59,7 @@ const sunGroup = new THREE.Group();
 scene.add(sunGroup);
 
 const sunGeo = new THREE.SphereGeometry(SUN_RADIUS_VIS, 64, 64);
-const sunMat = new THREE.MeshBasicMaterial({ color: 0xffc878 });
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xffb060 });
 const sunMesh = new THREE.Mesh(sunGeo, sunMat);
 sunGroup.add(sunMesh);
 
@@ -407,8 +407,8 @@ scene.add(new THREE.Points(kuiperGeo, new THREE.PointsMaterial({
     // Limb darkening — edges of sphere are dimmer
     const limb=0.6+0.4*Math.sqrt(Math.max(0,1-nx*nx-ny*ny-nz*nz+0.5));
     const bl=b*limb;
-    // Color: deep orange-red base (not yellow)
-    return [(255*bl)|0,(140*bl+20)|0,(45*bl+10)|0];
+    // Color: deep red-orange base
+    return [(255*bl)|0,(115*bl+15)|0,(35*bl+8)|0];
   });
   sunMat.map=tex; sunMat.needsUpdate=true;
 })();
@@ -4204,43 +4204,40 @@ function animate(now) {
     _solarFlares.forEach(f => {
       f.timer += dt;
       if (!f.active && f.timer > f.lifetime) {
-        // Start a new eruption
         f.active = true;
         f.progress = 0;
         f.timer = 0;
-        f.lifetime = 3 + Math.random() * 6;
-        // Randomize position around Sun
-        f.angle += Math.random() * Math.PI * 0.5;
-        f.sprite.position.set(
-          Math.cos(f.angle) * SUN_RADIUS_VIS * 1.05,
-          (Math.random() - 0.5) * SUN_RADIUS_VIS * 0.5,
-          Math.sin(f.angle) * SUN_RADIUS_VIS * 1.05
-        );
-        f.baseY = f.sprite.position.y;
+        f.lifetime = 2 + Math.random() * 5;
+        f.angle += Math.random() * Math.PI * 0.6;
+        f.baseY = (Math.random() - 0.5) * SUN_RADIUS_VIS * 0.4;
       }
       if (f.active) {
-        f.progress += dt * (0.15 + Math.random() * 0.08); // slower eruption
+        f.progress += dt * (0.12 + Math.random() * 0.06);
         if (f.progress >= 1) {
           f.active = false;
           f.mat.opacity = 0;
+          f.sprite.scale.set(0.001, 0.001, 1);
         } else {
-          // Arc upward then fade — dramatic loop shape
           const rise = Math.sin(f.progress * Math.PI);
-          const fade = f.progress < 0.25 ? f.progress / 0.25 : Math.pow(1 - (f.progress - 0.25) / 0.75, 0.5);
-          f.mat.opacity = fade * 0.85;
-          // Bigger flares — visible prominences
+          const fade = f.progress < 0.2 ? f.progress / 0.2 : Math.pow(1 - (f.progress - 0.2) / 0.8, 0.6);
+          f.mat.opacity = fade * 0.8;
+          // Flare grows from surface outward — base stays anchored
+          const flareH = rise * SUN_RADIUS_VIS * 0.6;
           f.sprite.scale.set(
-            0.04 + rise * 0.06,
-            0.08 + rise * 0.35,
+            0.03 + rise * 0.04,
+            Math.max(0.01, flareH),
             1
           );
-          // Arc outward from surface with slight curve
-          const outR = SUN_RADIUS_VIS * (1.02 + rise * 0.7);
-          const sway = Math.sin(f.progress * Math.PI * 2) * SUN_RADIUS_VIS * 0.1;
+          // Position: base of sprite sits on the Sun surface
+          // Sprite center offset upward by half its height so bottom touches surface
+          const surfR = SUN_RADIUS_VIS * 0.98;
+          const dx = Math.cos(f.angle);
+          const dz = Math.sin(f.angle);
+          // Radial direction outward from center
           f.sprite.position.set(
-            Math.cos(f.angle) * outR + Math.cos(f.angle + Math.PI/2) * sway,
-            f.baseY + rise * SUN_RADIUS_VIS * 0.8,
-            Math.sin(f.angle) * outR + Math.sin(f.angle + Math.PI/2) * sway
+            dx * (surfR + flareH * 0.5),
+            f.baseY + flareH * 0.3,
+            dz * (surfR + flareH * 0.5)
           );
         }
       }
